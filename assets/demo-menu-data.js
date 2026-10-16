@@ -17,6 +17,15 @@ const restaurantMenu = {
       "description": "Sườn cốt lết nướng than hoa vàng rượm, chả trứng hấp mềm béo, bì heo thái sợi thính gạo giòn thơm, trứng ốp la lòng đào và mỡ hành tóp mỡ béo ngậy.",
       "tags": ["Sườn than hoa", "Chả trứng hoàng kim", "Bì thính giòn", "Trứng ốp la"],
       "ingredients": ["pork", "rice", "lemongrass", "herbs"],
+      "components": [
+        { "name": "Sườn cốt lết nướng than hoa", "role": "Thành phần chính", "price": 35000, "icon": "🥩" },
+        { "name": "Chả trứng hoàng kim đút lò", "role": "Thành phần chính", "price": 15000, "icon": "🥚" },
+        { "name": "Bì heo trộn thính gạo thơm", "role": "Thành phần chính", "price": 10000, "icon": "🥓" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Trứng ốp la lòng đào (tùy chọn)", "role": "Món thêm", "price": 10000, "icon": "🍳" },
+        { "name": "Mỡ hành tóp mỡ giòn rụm", "role": "Gia vị chuẩn", "price": 0, "icon": "🥢" },
+        { "name": "Nước mắm kẹo ớt tỏi & Đồ chua", "role": "Ăn kèm", "price": 0, "icon": "🥗" }
+      ],
       "available": true
     },
     {
@@ -29,6 +38,13 @@ const restaurantMenu = {
       "description": "Từng dẻ sườn cây dày thịt tẩm ướp mật ong rừng và nước cốt tỏi sả, nướng xém cạnh trên than hồng thơm lừng, thịt mềm mọng nước đậm vị.",
       "tags": ["Sườn cây nướng", "Mật ong rừng", "Mỡ hành tóp mỡ", "Đồ chua giòn"],
       "ingredients": ["pork", "honey", "lemongrass", "rice"],
+      "components": [
+        { "name": "Dẻ sườn cây ướp mật ong rừng", "role": "Thành phần chính", "price": 55000, "icon": "🥩" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Chén súp canh nóng ngọt thanh", "role": "Canh kèm", "price": 12000, "icon": "🥣" },
+        { "name": "Mỡ hành tóp mỡ da heo giòn", "role": "Gia vị chuẩn", "price": 0, "icon": "🥢" },
+        { "name": "Đồ chua củ cải chua ngọt", "role": "Ăn kèm", "price": 0, "icon": "🥗" }
+      ],
       "available": true
     },
     {
@@ -41,6 +57,13 @@ const restaurantMenu = {
       "description": "Sườn cốt lết ướp đượm vị mắm đường tỏi sả, nướng than hoa thơm lừng. Cơm tấm dẻo rưới mỡ hành tóp mỡ giòn rụm và nước mắm kẹo chua ngọt.",
       "tags": ["Sườn than hoa", "Mỡ hành tóp mỡ", "Cơm tấm dẻo", "Nước mắm kẹo"],
       "ingredients": ["pork", "rice", "lemongrass", "herbs"],
+      "components": [
+        { "name": "Sườn cốt lết tẩm vị nướng than", "role": "Thành phần chính", "price": 38000, "icon": "🥩" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Chén súp hầm xương thanh ngọt", "role": "Canh kèm", "price": 9000, "icon": "🥣" },
+        { "name": "Mỡ hành tóp mỡ giòn rụm", "role": "Gia vị chuẩn", "price": 0, "icon": "🥢" },
+        { "name": "Nước mắm kẹo ớt tỏi & Dưa leo", "role": "Ăn kèm", "price": 0, "icon": "🥗" }
+      ],
       "available": true
     },
     {
@@ -53,6 +76,12 @@ const restaurantMenu = {
       "description": "Ba chỉ heo tươi với tỷ lệ nạc mỡ hoàn hảo, ướp muối ớt xiêm xanh nướng giòn rụm lớp bì ngoài, ăn kèm dưa leo và đồ chua chống ngấy tuyệt hảo.",
       "tags": ["Ba rọi nướng", "Muối ớt xiêm", "Bì giòn rụm", "Đồ chua giòn"],
       "ingredients": ["pork", "herbs", "garlic", "pickles"],
+      "components": [
+        { "name": "Ba rọi heo nướng giòn bì muối ớt", "role": "Thành phần chính", "price": 40000, "icon": "🥓" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Chén canh rong biển ngọt mát", "role": "Canh kèm", "price": 10000, "icon": "🥣" },
+        { "name": "Muối ớt xanh chấm & Đồ chua giòn", "role": "Gia vị chuẩn", "price": 0, "icon": "🥗" }
+      ],
       "available": true
     },
     {
@@ -65,6 +94,12 @@ const restaurantMenu = {
       "description": "Đùi gà góc tư ướp sả ớt đậm đà nướng than vàng ươm, lớp da ngoài giòn tan, thịt bên trong mềm ngọt, dùng kèm cơm tấm nóng và đồ chua thanh nhẹ.",
       "tags": ["Đùi gà góc tư", "Sả nướng thơm", "Da giòn mọng thịt", "Cơm thơm"],
       "ingredients": ["chicken", "lemongrass", "rice", "pickles"],
+      "components": [
+        { "name": "Đùi gà góc tư nướng sả da giòn", "role": "Thành phần chính", "price": 42000, "icon": "🍗" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Chén canh súp nóng hổi", "role": "Canh kèm", "price": 8000, "icon": "🥣" },
+        { "name": "Đồ chua củ cải & Dưa leo thái mỏng", "role": "Ăn kèm", "price": 0, "icon": "🥗" }
+      ],
       "available": true
     },
     {
@@ -77,6 +112,12 @@ const restaurantMenu = {
       "description": "Tàu hũ ky lá mỏng cuộn đầy ắp nhân tôm đất và thịt nạc quết dẻo mộc nhĩ, chiên phồng vàng ruộm giòn tan chấm nước mắm tỏi ớt chua ngọt.",
       "tags": ["Tàu hũ ky", "Tôm thịt giòn rụm", "Mỡ hành", "Nước mắm kẹo"],
       "ingredients": ["rice", "herbs", "garlic", "pickles"],
+      "components": [
+        { "name": "Tàu hũ ky cuộn tôm thịt chiên giòn", "role": "Thành phần chính", "price": 45000, "icon": "🍤" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Trứng ốp la lòng đào thơm béo", "role": "Món kèm", "price": 12000, "icon": "🍳" },
+        { "name": "Nước mắm tỏi ớt kẹo & Mỡ hành", "role": "Gia vị chuẩn", "price": 0, "icon": "🥢" }
+      ],
       "available": true
     },
     {
@@ -89,6 +130,12 @@ const restaurantMenu = {
       "description": "Thăn bò mềm ướp sốt sa tế tôm cay nồng, rắc mè rang thơm bùi nướng nhanh trên lửa lớn giữ trọn vị ngọt tự nhiên, hòa quyện tuyệt vời cùng cơm tấm nóng.",
       "tags": ["Thăn bò mềm", "Sa tế tôm cay", "Mè rang thơm", "Rau thơm tươi"],
       "ingredients": ["beef", "rice", "pepper", "herbs"],
+      "components": [
+        { "name": "Thăn bò mềm ướp sa tế mè rang", "role": "Thành phần chính", "price": 52000, "icon": "🥩" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Chén canh súp nóng hầm xương", "role": "Canh kèm", "price": 12000, "icon": "🥣" },
+        { "name": "Xà lách, dưa leo & Cà chua tươi", "role": "Ăn kèm", "price": 0, "icon": "🥗" }
+      ],
       "available": true
     },
     {
@@ -101,6 +148,12 @@ const restaurantMenu = {
       "description": "Chả cua bể hấp nấm mèo kết hợp phủ lớp lòng đỏ trứng muối hoàng kim béo ngậy trên mặt, thơm ngào ngạt và đậm đà khó cưỡng.",
       "tags": ["Chả cua bể", "Trứng muối hoàng kim", "Mỡ hành tóp mỡ", "Cơm tấm dẻo"],
       "ingredients": ["rice", "herbs", "pickles", "pepper"],
+      "components": [
+        { "name": "Chả cua bể trứng muối hoàng kim", "role": "Thành phần chính", "price": 48000, "icon": "🦀" },
+        { "name": "Bì heo trộn thính gạo giòn", "role": "Thành phần chính", "price": 13000, "icon": "🥓" },
+        { "name": "Cơm tấm thơm dẻo Sài Gòn", "role": "Cơm nền", "price": 8000, "icon": "🍚" },
+        { "name": "Mỡ hành tóp mỡ & Nước mắm chua ngọt", "role": "Gia vị chuẩn", "price": 0, "icon": "🥢" }
+      ],
       "available": true
     },
     {
@@ -113,6 +166,11 @@ const restaurantMenu = {
       "description": "Khổ qua tươi xanh nhồi thịt heo nạc và mộc nhĩ ướp tiêu thơm nức, nấu trong nước dùng hầm xương ngọt thanh tự nhiên, giúp giải nhiệt và cân bằng vị giác.",
       "tags": ["Khổ qua rừng", "Thịt bằm mộc nhĩ", "Nước dùng thanh", "Tiêu đen"],
       "ingredients": ["pepper", "herbs", "garlic", "rice"],
+      "components": [
+        { "name": "Khổ qua xanh nhồi thịt nạc mộc nhĩ", "role": "Thành phần chính", "price": 18000, "icon": "🥒" },
+        { "name": "Nước dùng hầm xương ngọt thanh", "role": "Nước dùng", "price": 7000, "icon": "🥣" },
+        { "name": "Hành ngò rắc & Tiêu đen thơm", "role": "Gia vị kèm", "price": 3000, "icon": "🌿" }
+      ],
       "available": true
     },
     {
@@ -125,6 +183,11 @@ const restaurantMenu = {
       "description": "Rong biển bổ dưỡng hòa quyện cùng từng miếng đậu hũ non mềm mịn tan trong miệng và thịt bằm viên ngọt nước, rắc hành ngò tươi thanh mát.",
       "tags": ["Rong biển tươi", "Đậu hũ non", "Thịt viên ngọt nước", "Thanh mát"],
       "ingredients": ["herbs", "pepper", "garlic", "rice"],
+      "components": [
+        { "name": "Rong biển nấu canh thanh mát", "role": "Thành phần chính", "price": 10000, "icon": "🥬" },
+        { "name": "Đậu hũ non mềm mịn", "role": "Thành phần chính", "price": 8000, "icon": "🧊" },
+        { "name": "Thịt heo bằm viên ướp tiêu", "role": "Thành phần chính", "price": 7000, "icon": "🥩" }
+      ],
       "available": true
     },
     {
@@ -137,6 +200,10 @@ const restaurantMenu = {
       "description": "Ly trà lài ủ lạnh kết hợp quất tươi thanh chua, sả tươi đập dập thơm dịu cùng hạt chia mát lành, kèm bánh flan trứng caramel béo mềm bùi ngọt.",
       "tags": ["Trà lài ủ lạnh", "Tắc tươi thanh chua", "Hạt chia bổ dưỡng", "Bánh flan caramen"],
       "ingredients": ["lemon", "honey", "herbs", "seeds"],
+      "components": [
+        { "name": "Trà lài tắc tươi sả hạt chia ủ lạnh", "role": "Thức uống", "price": 15000, "icon": "🍹" },
+        { "name": "Bánh flan trứng caramen sữa béo", "role": "Tráng miệng", "price": 10000, "icon": "🍮" }
+      ],
       "available": true
     },
     {
@@ -149,6 +216,10 @@ const restaurantMenu = {
       "description": "Nước sâm nấu theo bài thuốc gia truyền từ mía lau, lá dứa, râu bắp và rễ tranh ngọt mát tự nhiên, thêm thạch sương sáo giòn dai và hạt é mát lành.",
       "tags": ["Mía lau ngọt mát", "Lá dứa thanh hương", "Thạch sương sáo", "Hạt é mát lành"],
       "ingredients": ["honey", "seeds", "herbs", "lemon"],
+      "components": [
+        { "name": "Nước sâm mía lau lá dứa nấu rễ tranh", "role": "Nước mát", "price": 14000, "icon": "🥤" },
+        { "name": "Thạch sương sáo giòn dai & Hạt é", "role": "Topping mát", "price": 8000, "icon": "🍧" }
+      ],
       "available": true
     }
   ],

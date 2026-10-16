@@ -79,14 +79,15 @@ const server = http.createServer(async (req, res) => {
           const body = await parseBody(req);
           const id = body.id || 'dish_' + Date.now();
           const query = `
-            INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, available)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, components, available)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING *
           `;
           const values = [
             id, body.name, body.category || 'Món Chính', body.price || 65000, body.time || '5–10 phút',
             body.image || 'comtam-suon-cha.png', body.description || '', JSON.stringify(body.tags || []),
-            JSON.stringify(body.ingredients || ['pork', 'rice', 'herbs']), body.available !== false
+            JSON.stringify(body.ingredients || ['pork', 'rice', 'herbs']),
+            JSON.stringify(body.components || []), body.available !== false
           ];
           const result = await pool.query(query, values);
           return sendJSON(res, 201, result.rows[0]);
@@ -114,13 +115,15 @@ const server = http.createServer(async (req, res) => {
               time = COALESCE($4, time),
               image = COALESCE($5, image),
               description = COALESCE($6, description),
-              tags = COALESCE($7, tags)
-            WHERE id = $8
+              tags = COALESCE($7, tags),
+              components = COALESCE($8, components)
+            WHERE id = $9
             RETURNING *
           `;
           const values = [
             body.name, body.category, body.price, body.time, body.image,
-            body.description, body.tags ? JSON.stringify(body.tags) : null, dishId
+            body.description, body.tags ? JSON.stringify(body.tags) : null,
+            body.components ? JSON.stringify(body.components) : null, dishId
           ];
           const result = await pool.query(query, values);
           return sendJSON(res, 200, result.rows[0] || null);
@@ -333,72 +336,254 @@ const server = http.createServer(async (req, res) => {
       }
 
       // 4. USERS & AUTH
-      if (pathname === '/api/users' && method === 'GET') {
-        const result = await pool.query('SELECT id, name, phone, email, role, membership_number, tier, points, total_spent, address, created_at FROM users ORDER BY created_at DESC');
-        return sendJSON(res, 200, result.rows);
+      if (pathname === '/api/users') {
+        if (method === 'GET') {
+          const role = parsedUrl.query.role;
+          const search = parsedUrl.query.q ? `%${parsedUrl.query.q.trim().toLowerCase()}%` : null;
+
+          let query = 'SELECT id, name, phone, email, role, membership_number, tier, points, total_spent, address, status, created_at FROM users WHERE 1=1';
+          const values = [];
+
+          if (role) {
+            values.push(role);
+            query += ` AND role = $${values.length}`;
+          }
+
+          if (search) {
+            values.push(search);
+            query += ` AND (LOWER(name) LIKE $${values.length} OR LOWER(phone) LIKE $${values.length} OR LOWER(membership_number) LIKE $${values.length} OR LOWER(email) LIKE $${values.length})`;
+          }
+
+          query += ' ORDER BY created_at DESC';
+          const result = await pool.query(query, values);
+          return sendJSON(res, 200, result.rows);
+        }
+
+        // Admin creates a new customer or admin manually
+        if (method === 'POST') {
+          const body = await parseBody(req);
+          if (!body.name || !body.phone) {
+            return sendJSON(res, 400, { success: false, message: 'Họ tên và số điện thoại là bắt buộc' });
+          }
+
+          const existing = await pool.query('SELECT id FROM users WHERE phone = $1', [body.phone.trim()]);
+          if (existing.rows.length > 0) {
+            return sendJSON(res, 400, { success: false, message: 'Số điện thoại này đã tồn tại trong hệ thống' });
+          }
+
+          const role = body.role || 'customer';
+          const cardNum = role === 'admin' ? ('ADMIN-' + Math.floor(100 + Math.random() * 900)) : ('CTM-' + Math.floor(1000 + Math.random() * 9000) + '-MEM');
+          const newId = 'user_' + Date.now();
+          const points = parseInt(body.points, 10) || (role === 'admin' ? 9999 : 50);
+          const tier = body.tier || (points >= 500 ? 'Diamond' : (points >= 200 ? 'Gold' : 'Silver'));
+
+          const query = `
+            INSERT INTO users (id, name, phone, email, password, role, membership_number, tier, points, total_spent, address, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'active')
+            RETURNING id, name, phone, email, role, membership_number, tier, points, total_spent, address, status, created_at
+          `;
+          const values = [
+            newId, body.name.trim(), body.phone.trim(), body.email || '',
+            body.password || '123456', role, cardNum, tier, points,
+            parseInt(body.totalSpent, 10) || 0, body.address || ''
+          ];
+          const result = await pool.query(query, values);
+          return sendJSON(res, 201, { success: true, user: result.rows[0] });
+        }
       }
 
+      if (pathname.startsWith('/api/users/')) {
+        const parts = pathname.split('/');
+        const userId = parts[3];
+
+        // GET /api/users/:id - Get user with full order history
+        if (parts.length === 4 && method === 'GET') {
+          const userRes = await pool.query(
+            'SELECT id, name, phone, email, role, membership_number, tier, points, total_spent, address, status, created_at FROM users WHERE id = $1',
+            [userId]
+          );
+          if (userRes.rows.length === 0) return sendJSON(res, 404, { error: 'Không tìm thấy người dùng' });
+          const user = userRes.rows[0];
+
+          // Fetch orders by this user
+          const ordersRes = await pool.query(
+            'SELECT * FROM orders WHERE phone = $1 OR customer_name = $2 ORDER BY created_at DESC',
+            [user.phone, user.name]
+          );
+
+          return sendJSON(res, 200, { user, orders: ordersRes.rows });
+        }
+
+        // PUT /api/users/:id - Update profile information
+        if (parts.length === 4 && method === 'PUT') {
+          const body = await parseBody(req);
+          const points = body.points !== undefined ? parseInt(body.points, 10) : null;
+          let tier = body.tier || null;
+          if (points !== null && !tier) {
+            tier = points >= 500 ? 'Diamond' : (points >= 200 ? 'Gold' : 'Silver');
+          }
+
+          const query = `
+            UPDATE users SET
+              name = COALESCE($1, name),
+              phone = COALESCE($2, phone),
+              email = COALESCE($3, email),
+              address = COALESCE($4, address),
+              tier = COALESCE($5, tier),
+              points = COALESCE($6, points),
+              role = COALESCE($7, role),
+              status = COALESCE($8, status)
+            WHERE id = $9
+            RETURNING id, name, phone, email, role, membership_number, tier, points, total_spent, address, status, created_at
+          `;
+          const values = [
+            body.name, body.phone, body.email, body.address,
+            tier, points, body.role, body.status, userId
+          ];
+          const result = await pool.query(query, values);
+          if (result.rows.length === 0) return sendJSON(res, 404, { error: 'Không tìm thấy người dùng' });
+          return sendJSON(res, 200, { success: true, user: result.rows[0] });
+        }
+
+        // PUT /api/users/:id/password - Change password
+        if (pathname.endsWith('/password') && method === 'PUT') {
+          const body = await parseBody(req);
+          const oldPass = body.oldPassword;
+          const newPass = body.newPassword;
+          const isAdminOverride = body.isAdminOverride === true;
+
+          if (!newPass || newPass.length < 3) {
+            return sendJSON(res, 400, { success: false, message: 'Mật khẩu mới phải có ít nhất 3 ký tự' });
+          }
+
+          const userRes = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+          if (userRes.rows.length === 0) return sendJSON(res, 404, { error: 'Không tìm thấy tài khoản' });
+          const user = userRes.rows[0];
+
+          if (!isAdminOverride && user.password !== oldPass) {
+            return sendJSON(res, 400, { success: false, message: 'Mật khẩu hiện tại không chính xác' });
+          }
+
+          await pool.query('UPDATE users SET password = $1 WHERE id = $2', [newPass, userId]);
+          return sendJSON(res, 200, { success: true, message: 'Đổi mật khẩu thành công' });
+        }
+
+        // DELETE /api/users/:id - Delete user account
+        if (parts.length === 4 && method === 'DELETE') {
+          const userRes = await pool.query('SELECT role, membership_number FROM users WHERE id = $1', [userId]);
+          if (userRes.rows.length === 0) return sendJSON(res, 404, { error: 'Không tìm thấy tài khoản' });
+          const user = userRes.rows[0];
+
+          if (user.membership_number === 'ADMIN-ROOT' || userId === 'admin_01') {
+            return sendJSON(res, 400, { success: false, message: 'Không thể xóa tài khoản Quản Trị Viên gốc (Root Admin)' });
+          }
+
+          await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+          return sendJSON(res, 200, { success: true, message: 'Đã xóa tài khoản thành công' });
+        }
+
+        // POST /api/users/:id/points - Adjust points
+        if (pathname.endsWith('/points') && method === 'POST') {
+          const body = await parseBody(req);
+          const delta = parseInt(body.delta, 10) || 0;
+
+          const result = await pool.query(`
+            UPDATE users 
+            SET points = GREATEST(0, points + $1)
+            WHERE id = $2
+            RETURNING *
+          `, [delta, userId]);
+
+          if (result.rows.length > 0) {
+            const user = result.rows[0];
+            let tier = 'Silver';
+            if (user.points >= 500) tier = 'Diamond';
+            else if (user.points >= 200) tier = 'Gold';
+            await pool.query('UPDATE users SET tier = $1 WHERE id = $2', [tier, user.id]);
+            user.tier = tier;
+            delete user.password;
+            return sendJSON(res, 200, user);
+          }
+          return sendJSON(res, 404, { error: 'User not found' });
+        }
+      }
+
+      // Customer Login (Checks existence & password clearly)
       if (pathname === '/api/auth/login' && method === 'POST') {
         const body = await parseBody(req);
         const id = (body.identifier || '').trim().toLowerCase();
         const pass = body.password || '';
 
-        const result = await pool.query(`
+        const checkUser = await pool.query(`
           SELECT * FROM users 
-          WHERE (LOWER(phone) = $1 OR LOWER(email) = $1 OR LOWER(membership_number) = $1 OR (role = 'admin' AND $1 = 'admin'))
-            AND password = $2
-        `, [id, pass]);
+          WHERE LOWER(phone) = $1 OR LOWER(email) = $1 OR LOWER(membership_number) = $1 OR (role = 'admin' AND $1 = 'admin')
+        `, [id]);
 
-        if (result.rows.length > 0) {
-          const user = result.rows[0];
-          delete user.password;
-          return sendJSON(res, 200, { success: true, user });
+        if (checkUser.rows.length === 0) {
+          return sendJSON(res, 401, { success: false, message: 'Số điện thoại hoặc thông tin đăng nhập chưa được đăng ký trong hệ thống' });
         }
-        return sendJSON(res, 401, { success: false, message: 'Sai thông tin hoặc mật khẩu' });
+
+        const user = checkUser.rows[0];
+        if (user.password !== pass) {
+          return sendJSON(res, 401, { success: false, message: 'Mật khẩu không chính xác, vui lòng thử lại' });
+        }
+
+        if (user.status === 'blocked') {
+          return sendJSON(res, 403, { success: false, message: 'Tài khoản này đang bị tạm khóa. Vui lòng liên hệ hotline 1900 6868.' });
+        }
+
+        delete user.password;
+        return sendJSON(res, 200, { success: true, user });
+      }
+
+      // Admin Login (Strictly verifies role = 'admin')
+      if (pathname === '/api/auth/admin-login' && method === 'POST') {
+        const body = await parseBody(req);
+        const id = (body.identifier || '').trim().toLowerCase();
+        const pass = body.password || '';
+
+        const checkUser = await pool.query(`
+          SELECT * FROM users 
+          WHERE LOWER(phone) = $1 OR LOWER(email) = $1 OR LOWER(membership_number) = $1 OR (role = 'admin' AND $1 = 'admin')
+        `, [id]);
+
+        if (checkUser.rows.length === 0) {
+          return sendJSON(res, 401, { success: false, message: 'Tài khoản quản trị viên không tồn tại' });
+        }
+
+        const user = checkUser.rows[0];
+        if (user.role !== 'admin') {
+          return sendJSON(res, 403, { success: false, message: 'Tài khoản này là tài khoản khách hàng, không có quyền truy cập Quản Trị Bếp' });
+        }
+
+        if (user.password !== pass) {
+          return sendJSON(res, 401, { success: false, message: 'Mật khẩu quản trị viên không chính xác' });
+        }
+
+        delete user.password;
+        return sendJSON(res, 200, { success: true, user });
       }
 
       if (pathname === '/api/auth/register' && method === 'POST') {
         const body = await parseBody(req);
+        if (!body.name || !body.phone || !body.password) {
+          return sendJSON(res, 400, { success: false, message: 'Vui lòng điền đầy đủ Họ tên, Số điện thoại và Mật khẩu' });
+        }
+
         const cardNum = 'CTM-' + Math.floor(1000 + Math.random() * 9000) + '-MEM';
         const newId = 'user_' + Date.now();
 
         try {
           const result = await pool.query(`
-            INSERT INTO users (id, name, phone, email, password, role, membership_number, tier, points, total_spent, address)
-            VALUES ($1, $2, $3, $4, $5, 'customer', $6, 'Silver', 50, 0, '')
-            RETURNING id, name, phone, email, role, membership_number, tier, points, total_spent, address
-          `, [newId, body.name, body.phone, body.email || '', body.password, cardNum]);
+            INSERT INTO users (id, name, phone, email, password, role, membership_number, tier, points, total_spent, address, status)
+            VALUES ($1, $2, $3, $4, $5, 'customer', $6, 'Silver', 50, 0, '', 'active')
+            RETURNING id, name, phone, email, role, membership_number, tier, points, total_spent, address, status, created_at
+          `, [newId, body.name.trim(), body.phone.trim(), body.email ? body.email.trim() : '', body.password, cardNum]);
 
           return sendJSON(res, 201, { success: true, user: result.rows[0] });
         } catch (e) {
-          return sendJSON(res, 400, { success: false, message: 'Số điện thoại này đã được đăng ký' });
+          return sendJSON(res, 400, { success: false, message: 'Số điện thoại này đã được đăng ký thành viên trước đó' });
         }
-      }
-
-      if (pathname.startsWith('/api/users/') && pathname.endsWith('/points') && method === 'POST') {
-        const userId = pathname.split('/')[3];
-        const body = await parseBody(req);
-        const delta = parseInt(body.delta, 10) || 0;
-
-        const result = await pool.query(`
-          UPDATE users 
-          SET points = GREATEST(0, points + $1)
-          WHERE id = $2
-          RETURNING *
-        `, [delta, userId]);
-
-        if (result.rows.length > 0) {
-          const user = result.rows[0];
-          // Auto upgrade tier
-          let tier = 'Silver';
-          if (user.points >= 500) tier = 'Diamond';
-          else if (user.points >= 200) tier = 'Gold';
-          await pool.query('UPDATE users SET tier = $1 WHERE id = $2', [tier, user.id]);
-          user.tier = tier;
-          delete user.password;
-          return sendJSON(res, 200, user);
-        }
-        return sendJSON(res, 404, { error: 'User not found' });
       }
 
       // 5. PRINT STANDEE QR CODE SHEET (HTML View)

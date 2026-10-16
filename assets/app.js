@@ -178,11 +178,27 @@
     if (priceEl) priceEl.innerHTML = formatPrice(d.price) + ' <small>đ</small>';
     if (timeEl) timeEl.textContent = d.time;
     if (tagsEl) {
-      tagsEl.replaceChildren(...(d.tags || []).map(t => {
-        const el = document.createElement('span');
-        el.textContent = t;
-        return el;
-      }));
+      if (d.components && d.components.length > 0) {
+        tagsEl.className = 'stage-components-container';
+        tagsEl.replaceChildren(...d.components.map(c => {
+          const el = document.createElement('span');
+          el.className = 'stage-comp-pill';
+          const pText = c.price > 0 ? (c.price >= 1000 ? (c.price / 1000) + 'k' : formatPrice(c.price)) : '0đ';
+          el.innerHTML = `<span class="pill-ico">${c.icon || '🥢'}</span> <span class="pill-name">${c.name}</span> <b class="pill-cost ${c.price === 0 ? 'cost-free' : ''}">${pText}</b>`;
+          el.style.cursor = 'pointer';
+          el.title = 'Bấm để xem chi tiết thành phần & giá';
+          el.onclick = () => openDishDetails();
+          return el;
+        }));
+      } else {
+        tagsEl.className = 'stage-components-container';
+        tagsEl.replaceChildren(...(d.tags || []).map(t => {
+          const el = document.createElement('span');
+          el.className = 'stage-comp-pill';
+          el.textContent = t;
+          return el;
+        }));
+      }
     }
     [...track.children].forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.index) === selectedDishIndex)));
     if (!initial && details) {
@@ -235,23 +251,58 @@
     document.querySelector('#modal-time').textContent = d.time;
     document.querySelector('#modal-price').innerHTML = formatPrice(d.price) + ' <small>đ</small>';
     const ingredientsEl = document.querySelector('#modal-ingredients');
+    const summaryEl = document.querySelector('#modal-components-summary');
     if (ingredientsEl) {
-      ingredientsEl.replaceChildren(...(d.ingredients || []).map(key => {
-        const entry = ingredientCatalog[key] || [key, 3];
-        const [name, cell] = entry;
-        const item = document.createElement('li');
-        item.className = 'ingredient-item';
-        const photo = document.createElement('span');
-        photo.className = 'ingredient-photo';
-        photo.setAttribute('aria-hidden', 'true');
-        photo.style.setProperty('--ingredient-x', `${cell % 5 * 25}%`);
-        photo.style.setProperty('--ingredient-y', `${Math.floor(cell / 5) * 100 / 3}%`);
-        const label = document.createElement('span');
-        label.className = 'ingredient-name';
-        label.textContent = name;
-        item.append(photo, label);
-        return item;
-      }));
+      if (d.components && d.components.length > 0) {
+        ingredientsEl.replaceChildren(...d.components.map(comp => {
+          const item = document.createElement('li');
+          item.className = 'component-card-item';
+          const priceDisplay = comp.price > 0 ? formatPrice(comp.price) + ' đ' : 'Miễn phí kèm đĩa';
+          const isFree = comp.price === 0;
+          item.innerHTML = `
+            <div class="comp-icon-badge">${comp.icon || '🍱'}</div>
+            <div class="comp-text">
+              <strong class="comp-title">${comp.name}</strong>
+              <span class="comp-role-badge">${comp.role || 'Thành phần'}</span>
+            </div>
+            <div class="comp-price-val ${isFree ? 'is-free' : ''}">${priceDisplay}</div>
+          `;
+          return item;
+        }));
+
+        if (summaryEl) {
+          const sumPrices = d.components.reduce((acc, c) => acc + (c.price || 0), 0);
+          if (sumPrices > d.price) {
+            const saved = sumPrices - d.price;
+            summaryEl.innerHTML = `
+              <div class="combo-savings-banner">
+                <span>✨ <b>Giá trọn gói combo: ${formatPrice(d.price)} đ</b> (Tiết kiệm ${formatPrice(saved)} đ so với tổng giá gọi lẻ từng phần ${formatPrice(sumPrices)} đ)</span>
+              </div>
+            `;
+          } else {
+            summaryEl.innerHTML = `
+              <div class="combo-savings-banner">
+                <span>🥢 Món ăn nóng hổi vừa ra lò, nướng than hoa vàng giòn thơm lừng</span>
+              </div>
+            `;
+          }
+        }
+      } else {
+        ingredientsEl.replaceChildren(...(d.tags || []).map(tag => {
+          const item = document.createElement('li');
+          item.className = 'component-card-item';
+          item.innerHTML = `
+            <div class="comp-icon-badge">🥢</div>
+            <div class="comp-text">
+              <strong class="comp-title">${tag}</strong>
+              <span class="comp-role-badge">Nguyên liệu</span>
+            </div>
+            <div class="comp-price-val is-free">Kèm đĩa</div>
+          `;
+          return item;
+        }));
+        if (summaryEl) summaryEl.innerHTML = '';
+      }
     }
   }
 
@@ -521,6 +572,14 @@
       if (window.ComTamApp) {
         window.ComTamApp.openCustomization(d);
       }
+    });
+  }
+
+  // Button to open details dialog from stage
+  const openDetailBtn = document.querySelector('#btn-open-dish-modal');
+  if (openDetailBtn) {
+    openDetailBtn.addEventListener('click', () => {
+      openDishDetails();
     });
   }
 

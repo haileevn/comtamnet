@@ -2112,7 +2112,237 @@
   padding: 6px 12px;
 }
 
-.table-card-actions .btn-resolve-call:hover {
-  background: #219653;
 }
+
+/* --- Dish Components Breakdown Styles --- */
+.stage-components-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px auto 0;
+  max-width: 580px;
+}
+
+.stage-comp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #ebdccf;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: var(--dark-ink);
+  transition: all 0.2s ease;
+}
+
+.stage-comp-pill:hover {
+  border-color: var(--primary-color);
+  background: #fffdf9;
+  transform: translateY(-1px);
+}
+
+.stage-comp-pill .pill-ico {
+  font-size: 13px;
+}
+
+.stage-comp-pill .pill-name {
+  font-weight: 600;
+  color: #3e3226;
+}
+
+.stage-comp-pill .pill-cost {
+  background: #fbf2e9;
+  color: var(--primary-color);
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.stage-comp-pill .pill-cost.cost-free {
+  background: #e8f8f0;
+  color: #27ae60;
+}
+
+/* Detail Modal Components */
+.component-card-item {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #ebdccf;
+  background: #faf6f0;
+  border-radius: 10px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.component-card-item:hover {
+  border-color: #d4a373;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.comp-icon-badge {
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #ebdccf;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.comp-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.comp-title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--dark-ink);
+  line-height: 1.3;
+}
+
+.comp-role-badge {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--text-muted);
+  background: #f0e6da;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+
+.comp-price-val {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--primary-color);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.comp-price-val.is-free {
+  color: #27ae60;
+  font-size: 11.5px;
+  background: #eafaf1;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.components-summary-box {
+  margin-top: 14px;
+}
+
+.combo-savings-banner {
+  background: #fff8eb;
+  border: 1px dashed #d4a373;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #7a4f1d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* User & Admin Profile Navigation Tabs */
+.sub-nav-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #ebdccf;
+  padding-bottom: 8px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+
+.sub-nav-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sub-nav-btn:hover {
+  color: var(--dark-ink);
+  background: #f7ede2;
+}
+
+.sub-nav-btn.active {
+  color: #ffffff;
+  background: var(--primary-color);
+  box-shadow: 0 2px 6px rgba(184,75,41,0.25);
+}
+
+.sub-nav-btn.danger.active {
+  background: #e74c3c;
+  color: #ffffff;
+}
+
+/* CRM Table & Filter Badges */
+.crm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  background: #ffffff;
+  padding: 12px;
+  border: 1px solid #ebdccf;
+  border-radius: var(--radius-sm);
+}
+
+.crm-search-box {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  max-width: 400px;
+}
+
+.user-avatar-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #d4a373;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.customer-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .customer-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 

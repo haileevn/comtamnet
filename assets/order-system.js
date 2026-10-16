@@ -1208,92 +1208,222 @@
     `;
   }
 
+  let activeMemberTab = 'card';
+
   function renderMemberCardView(container, user) {
     const tier = user.tier || 'Silver';
     const tierClass = tier === 'Diamond' ? 'tier-diamond' : tier === 'Gold' ? 'tier-gold' : 'tier-silver';
     const tierNameVi = tier === 'Diamond' ? 'HỘI VIÊN KIM CƯƠNG' : tier === 'Gold' ? 'HỘI VIÊN VÀNG' : 'HỘI VIÊN BẠC';
+    const orders = store.getOrders().filter(o => o.phone === user.phone || (o.customerName || o.customer_name) === user.name);
 
-    const orders = store.getOrders().filter(o => o.phone === user.phone);
+    let tabContent = '';
+
+    if (activeMemberTab === 'card') {
+      tabContent = `
+        <div class="vip-card-container">
+          <div class="vip-card ${tierClass}">
+            <div class="card-top-row">
+              <span class="card-brand-name">CƠM TẤM ÔNG MẬP</span>
+              <span class="card-tier-badge">${tierNameVi}</span>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2;">
+              <div class="card-chip"></div>
+              <div style="font-size:18px;opacity:0.8;">📡 NFC VIP</div>
+            </div>
+
+            <div class="card-number">${user.membershipNumber || user.membership_number || 'CTM-8889-VIP'}</div>
+
+            <div class="card-bottom-row">
+              <div>
+                <div style="font-size:9.5px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;">Chủ thẻ hội viên</div>
+                <div class="card-holder-name">${user.name}</div>
+              </div>
+              <div class="card-points-display">
+                <small>Điểm tích lũy</small>
+                <strong>${user.points || 0} <span style="font-size:13px;">ĐIỂM</span></strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="membership-stats">
+          <div class="member-stat-box highlight">
+            <small>Điểm khả dụng</small>
+            <strong>${user.points || 0} đ</strong>
+          </div>
+          <div class="member-stat-box">
+            <small>Quy đổi trừ bill</small>
+            <strong>${formatPrice((user.points || 0) * 100)} đ</strong>
+          </div>
+          <div class="member-stat-box">
+            <small>Tổng chi tiêu</small>
+            <strong>${formatPrice(user.totalSpent || user.total_spent || 0)} đ</strong>
+          </div>
+        </div>
+
+        <div class="tier-benefits">
+          <h4>🎁 Quyền lợi hạng ${tier}</h4>
+          <ul class="benefits-list">
+            <li>Tích lũy <b>${tier === 'Diamond' ? '10%' : tier === 'Gold' ? '7%' : '5%'}</b> giá trị mỗi đơn hàng cơm tấm</li>
+            <li>Đổi điểm thanh toán trực tiếp: 1 điểm = 100 đồng</li>
+            <li>${tier === 'Diamond' ? 'Miễn phí giao hàng trọn đời mọi đơn' : tier === 'Gold' ? 'Miễn phí giao hàng cho đơn từ 120.000đ' : 'Miễn phí giao hàng cho đơn từ 150.000đ'}</li>
+            <li>Quà tặng sinh nhật đặc biệt và ưu đãi giảm giá ngày lễ</li>
+          </ul>
+        </div>
+
+        <div style="margin-top:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h4 style="margin:0;font-size:15px;color:var(--dark-ink);">Lịch sử đơn hàng của bạn (${orders.length})</h4>
+          </div>
+
+          ${orders.length === 0 ? `
+            <p style="font-size:13px;color:var(--text-muted);text-align:center;padding:16px;">Bạn chưa có đơn hàng nào.</p>
+          ` : `
+            <div style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;">
+              ${orders.map(o => `
+                <div style="background:#faf7f2;border:1px solid #ebdccf;border-radius:var(--radius-sm);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <strong style="font-size:13.5px;color:var(--dark-ink);">${o.orderCode || o.order_code}</strong>
+                    <div style="font-size:11.5px;color:var(--text-muted);">${o.createdAt || o.created_at} · ${formatPrice(o.totalAmount || o.total_amount)} đ</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <button type="button" class="btn-sm-action" onclick="window.ComTamApp.openKitchenTicket('${o.id}')" title="In phiếu bếp">🖨️ In</button>
+                    <span class="status-badge ${o.orderStatus || o.order_status}" style="font-size:11px;">${o.orderStatus || o.order_status}</span>
+                    <button type="button" class="btn-sm-action" onclick="window.ComTamApp.viewSingleOrder('${o.id}')">Theo dõi</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    } else if (activeMemberTab === 'profile') {
+      tabContent = `
+        <form id="form-user-edit-profile" onsubmit="window.ComTamApp.handleUpdateProfile(event)" style="background:#ffffff;border:1px solid #ebdccf;border-radius:var(--radius-sm);padding:20px;">
+          <h4 style="margin:0 0 14px;font-size:16px;color:var(--dark-ink);">✏️ Chỉnh Sửa Thông Tin Cá Nhân</h4>
+          
+          <div style="background:#fdfaf6;border:1px solid #ebdccf;padding:12px 14px;border-radius:6px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <small style="color:var(--text-muted);display:block;">Mã Thẻ Hội Viên:</small>
+              <strong style="color:var(--primary-color);font-size:14px;">${user.membershipNumber || user.membership_number}</strong>
+            </div>
+            <div>
+              <small style="color:var(--text-muted);display:block;">Hạng Thẻ:</small>
+              <strong style="color:var(--dark-ink);">${tierNameVi}</strong>
+            </div>
+            <div>
+              <small style="color:var(--text-muted);display:block;">Điểm Tích Lũy:</small>
+              <strong style="color:#27ae60;">${user.points || 0} điểm</strong>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="member-edit-name">Họ và tên *</label>
+            <input type="text" id="member-edit-name" class="form-control" required value="${user.name}">
+          </div>
+
+          <div class="form-group">
+            <label for="member-edit-phone">Số điện thoại *</label>
+            <input type="tel" id="member-edit-phone" class="form-control" required value="${user.phone}">
+          </div>
+
+          <div class="form-group">
+            <label for="member-edit-email">Email</label>
+            <input type="email" id="member-edit-email" class="form-control" value="${user.email || ''}">
+          </div>
+
+          <div class="form-group">
+            <label for="member-edit-address">Địa chỉ nhận cơm mặc định</label>
+            <textarea id="member-edit-address" class="form-control" rows="2" placeholder="Ví dụ: 123 Nguyễn Thị Minh Khai, P. Bến Nghé, Quận 1">${user.address || ''}</textarea>
+          </div>
+
+          <button type="submit" class="btn-checkout" style="margin-top:10px;">
+            💾 Lưu Cập Nhật Thông Tin
+          </button>
+        </form>
+      `;
+    } else if (activeMemberTab === 'password') {
+      tabContent = `
+        <form id="form-user-change-password" onsubmit="window.ComTamApp.handleChangePassword(event)" style="background:#ffffff;border:1px solid #ebdccf;border-radius:var(--radius-sm);padding:20px;">
+          <h4 style="margin:0 0 14px;font-size:16px;color:var(--dark-ink);">🔒 Đổi Mật Khẩu Tài Khoản</h4>
+          <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:16px;">Để bảo mật tài khoản hội viên của bạn, vui lòng nhập mật khẩu hiện tại trước khi tạo mật khẩu mới.</p>
+
+          <div class="form-group">
+            <label for="member-old-pass">Mật khẩu hiện tại *</label>
+            <input type="password" id="member-old-pass" class="form-control" required placeholder="Nhập mật khẩu đang dùng">
+          </div>
+
+          <div class="form-group">
+            <label for="member-new-pass">Mật khẩu mới *</label>
+            <input type="password" id="member-new-pass" class="form-control" required minlength="3" placeholder="Tối thiểu 3 ký tự">
+          </div>
+
+          <div class="form-group">
+            <label for="member-confirm-pass">Xác nhận mật khẩu mới *</label>
+            <input type="password" id="member-confirm-pass" class="form-control" required minlength="3" placeholder="Nhập lại mật khẩu mới">
+          </div>
+
+          <button type="submit" class="btn-checkout" style="margin-top:10px;">
+            🔒 Cập Nhật Mật Khẩu Mới
+          </button>
+        </form>
+      `;
+    } else if (activeMemberTab === 'delete') {
+      tabContent = `
+        <div style="background:#fff2f2;border:1px solid #f5c6cb;border-radius:var(--radius-sm);padding:20px;">
+          <h4 style="margin:0 0 10px;font-size:16px;color:#721c24;">⚠️ Xóa Vĩnh Viễn Tài Khoản Khách Hàng</h4>
+          <p style="font-size:13px;color:#721c24;line-height:1.6;margin-bottom:14px;">
+            Hành động này sẽ xóa toàn bộ hồ sơ khách hàng của bạn (<b>${user.name} - ${user.phone}</b>) khỏi hệ thống cơm tấm Ông Mập:
+          </p>
+          <ul style="font-size:12.5px;color:#721c24;padding-left:20px;margin-bottom:16px;">
+            <li>Toàn bộ <b>${user.points || 0} điểm tích lũy</b> (tương đương ${formatPrice((user.points || 0) * 100)} đ)</li>
+            <li>Hạng thẻ VIP ${tier} và tất cả ưu đãi miễn phí giao hàng</li>
+            <li>Thông tin địa chỉ giao hàng và lịch sử liên kết đơn hàng</li>
+          </ul>
+
+          <div style="margin-bottom:16px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#721c24;font-weight:600;cursor:pointer;">
+              <input type="checkbox" id="confirm-delete-user-check">
+              Tôi xác nhận và đồng ý xóa vĩnh viễn tài khoản của mình
+            </label>
+          </div>
+
+          <button type="button" class="btn-sm-action danger" style="padding:10px 18px;font-size:13px;font-weight:700;" onclick="window.ComTamApp.handleDeleteMyAccount()">
+            🗑️ Xóa Tài Khoản Của Tôi Ngay
+          </button>
+        </div>
+      `;
+    }
 
     container.innerHTML = `
-      <div class="vip-card-container">
-        <div class="vip-card ${tierClass}">
-          <div class="card-top-row">
-            <span class="card-brand-name">CƠM TẤM ÔNG MẬP</span>
-            <span class="card-tier-badge">${tierNameVi}</span>
-          </div>
-
-          <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2;">
-            <div class="card-chip"></div>
-            <div style="font-size:18px;opacity:0.8;">📡 NFC</div>
-          </div>
-
-          <div class="card-number">${user.membershipNumber || 'CTM-8889-VIP'}</div>
-
-          <div class="card-bottom-row">
-            <div>
-              <div style="font-size:9.5px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;">Chủ thẻ hội viên</div>
-              <div class="card-holder-name">${user.name}</div>
-            </div>
-            <div class="card-points-display">
-              <small>Điểm tích lũy</small>
-              <strong>${user.points || 0} <span style="font-size:13px;">ĐIỂM</span></strong>
-            </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #ebdccf;padding-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="user-avatar-mini">${user.name ? user.name.charAt(0).toUpperCase() : 'VIP'}</div>
+          <div>
+            <strong style="font-size:15px;color:var(--dark-ink);display:block;">${user.name}</strong>
+            <small style="color:var(--text-muted);">${user.phone} · ${tierNameVi}</small>
           </div>
         </div>
+        <button type="button" class="btn-sm-action danger" onclick="window.ComTamApp.logout()">Đăng xuất</button>
       </div>
 
-      <div class="membership-stats">
-        <div class="member-stat-box highlight">
-          <small>Điểm khả dụng</small>
-          <strong>${user.points || 0} đ</strong>
-        </div>
-        <div class="member-stat-box">
-          <small>Quy đổi trừ bill</small>
-          <strong>${formatPrice((user.points || 0) * 100)} đ</strong>
-        </div>
-        <div class="member-stat-box">
-          <small>Tổng chi tiêu</small>
-          <strong>${formatPrice(user.totalSpent || 0)} đ</strong>
-        </div>
+      <div class="sub-nav-tabs">
+        <button type="button" class="sub-nav-btn ${activeMemberTab === 'card' ? 'active' : ''}" onclick="window.ComTamApp.switchMemberTab('card')">
+          💳 Thẻ VIP & Điểm
+        </button>
+        <button type="button" class="sub-nav-btn ${activeMemberTab === 'profile' ? 'active' : ''}" onclick="window.ComTamApp.switchMemberTab('profile')">
+          ✏️ Sửa Thông Tin
+        </button>
+        <button type="button" class="sub-nav-btn ${activeMemberTab === 'password' ? 'active' : ''}" onclick="window.ComTamApp.switchMemberTab('password')">
+          🔒 Đổi Mật Khẩu
+        </button>
+        <button type="button" class="sub-nav-btn danger ${activeMemberTab === 'delete' ? 'active' : ''}" onclick="window.ComTamApp.switchMemberTab('delete')">
+          🗑️ Xóa Tài Khoản
+        </button>
       </div>
 
-      <div class="tier-benefits">
-        <h4>🎁 Quyền lợi hạng ${tier}</h4>
-        <ul class="benefits-list">
-          <li>Tích lũy <b>${tier === 'Diamond' ? '10%' : tier === 'Gold' ? '7%' : '5%'}</b> giá trị mỗi đơn hàng cơm tấm</li>
-          <li>Đổi điểm thanh toán trực tiếp: 1 điểm = 100 đồng</li>
-          <li>${tier === 'Diamond' ? 'Miễn phí giao hàng trọn đời mọi đơn' : tier === 'Gold' ? 'Miễn phí giao hàng cho đơn từ 120.000đ' : 'Miễn phí giao hàng cho đơn từ 150.000đ'}</li>
-          <li>Quà tặng sinh nhật đặc biệt và ưu đãi giảm giá ngày lễ</li>
-        </ul>
-      </div>
-
-      <div style="margin-top:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <h4 style="margin:0;font-size:15px;color:var(--dark-ink);">Lịch sử đơn hàng của bạn (${orders.length})</h4>
-          <button type="button" class="btn-sm-action danger" onclick="window.ComTamApp.logout()">Đăng xuất</button>
-        </div>
-
-        ${orders.length === 0 ? `
-          <p style="font-size:13px;color:var(--text-muted);text-align:center;padding:16px;">Bạn chưa có đơn hàng nào.</p>
-        ` : `
-          <div style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;">
-            ${orders.map(o => `
-              <div style="background:#faf7f2;border:1px solid #ebdccf;border-radius:var(--radius-sm);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                  <strong style="font-size:13.5px;color:var(--dark-ink);">${o.orderCode}</strong>
-                  <div style="font-size:11.5px;color:var(--text-muted);">${o.createdAt} · ${formatPrice(o.totalAmount)} đ</div>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <button type="button" class="btn-sm-action" onclick="window.ComTamApp.openKitchenTicket('${o.id}')" title="In phiếu bếp">🖨️ In</button>
-                  <span class="status-badge ${o.orderStatus}" style="font-size:11px;">${o.orderStatus}</span>
-                  <button type="button" class="btn-sm-action" onclick="window.ComTamApp.viewSingleOrder('${o.id}')">Theo dõi</button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `}
-      </div>
+      ${tabContent}
     `;
   }
 
@@ -1403,7 +1533,10 @@
           🍲 Quản Lý Thực Đơn (${dishes.length})
         </button>
         <button type="button" class="admin-nav-tab ${activeAdminTab === 'members' ? 'active' : ''}" onclick="window.ComTamApp.switchAdminTab('members')">
-          👥 Hội Viên & Điểm Thưởng (${customerCount})
+          👥 Khách Hàng CRM (${customerCount})
+        </button>
+        <button type="button" class="admin-nav-tab ${activeAdminTab === 'admin_profile' ? 'active' : ''}" onclick="window.ComTamApp.switchAdminTab('admin_profile')">
+          🛡️ Hồ Sơ Quản Trị
         </button>
         <button type="button" class="admin-nav-tab ${activeAdminTab === 'settings' ? 'active' : ''}" onclick="window.ComTamApp.switchAdminTab('settings')">
           ⚙️ Cài Đặt & PostgreSQL
@@ -1460,6 +1593,10 @@
 
       <div class="admin-tab-pane ${activeAdminTab === 'members' ? 'active' : ''}" id="admin-tab-members">
         ${renderMembersTab(users)}
+      </div>
+
+      <div class="admin-tab-pane ${activeAdminTab === 'admin_profile' ? 'active' : ''}" id="admin-tab-admin-profile">
+        ${renderAdminProfileTab(users)}
       </div>
 
       <div class="admin-tab-pane ${activeAdminTab === 'settings' ? 'active' : ''}" id="admin-tab-settings">
@@ -1784,37 +1921,227 @@
     `;
   }
 
-  function renderMembersTab(users) {
-    const customers = users.filter(u => u.role === 'customer');
+  function renderAdminProfileTab(users) {
+    const admin = store.getCurrentUser() || { name: 'Quản Trị Bếp Ông Mập', phone: '0988888888', email: 'admin@comtam.net', role: 'admin' };
+    const allStaff = users.filter(u => u.role === 'admin' || u.role === 'staff');
 
     return `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        <form id="admin-profile-form" onsubmit="window.ComTamApp.handleUpdateAdminProfile(event)" style="background:#ffffff;border:1px solid #ebdccf;border-radius:var(--radius-sm);padding:20px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid #ebdccf;padding-bottom:10px;">
+            <span style="font-size:24px;">🛡️</span>
+            <div>
+              <h4 style="margin:0;font-size:16px;color:var(--dark-ink);">Hồ Sơ Quản Trị Viên</h4>
+              <small style="color:var(--text-muted);">Quyền hạn: <b>Quản Trị Tối Cao (Root Admin)</b></small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="adm-prof-name">Họ và tên Quản trị viên *</label>
+            <input type="text" id="adm-prof-name" class="form-control" required value="${admin.name}">
+          </div>
+
+          <div class="form-group">
+            <label for="adm-prof-phone">Số điện thoại Quản trị / Hotline *</label>
+            <input type="tel" id="adm-prof-phone" class="form-control" required value="${admin.phone}">
+          </div>
+
+          <div class="form-group">
+            <label for="adm-prof-email">Email quản trị viên *</label>
+            <input type="email" id="adm-prof-email" class="form-control" required value="${admin.email || ''}">
+          </div>
+
+          <div class="form-group">
+            <label for="adm-prof-address">Cơ sở / Chi nhánh phụ trách</label>
+            <input type="text" id="adm-prof-address" class="form-control" value="${admin.address || 'Trụ sở comtam.net'}">
+          </div>
+
+          <button type="submit" class="btn-checkout" style="background:#2b2724;margin-top:10px;">
+            💾 Lưu Cập Nhật Thông Tin Admin
+          </button>
+        </form>
+
+        <form id="admin-password-form" onsubmit="window.ComTamApp.handleChangeAdminPassword(event)" style="background:#ffffff;border:1px solid #ebdccf;border-radius:var(--radius-sm);padding:20px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid #ebdccf;padding-bottom:10px;">
+            <span style="font-size:24px;">🔒</span>
+            <div>
+              <h4 style="margin:0;font-size:16px;color:var(--dark-ink);">Đổi Mật Khẩu Quản Trị Viên</h4>
+              <small style="color:var(--text-muted);">Bảo vệ quyền truy cập và dữ liệu vận hành quán</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="adm-old-pass">Mật khẩu hiện tại *</label>
+            <input type="password" id="adm-old-pass" class="form-control" required placeholder="Nhập mật khẩu đang dùng">
+          </div>
+
+          <div class="form-group">
+            <label for="adm-new-pass">Mật khẩu mới *</label>
+            <input type="password" id="adm-new-pass" class="form-control" required minlength="3" placeholder="Tối thiểu 3 ký tự">
+          </div>
+
+          <div class="form-group">
+            <label for="adm-confirm-pass">Xác nhận mật khẩu mới *</label>
+            <input type="password" id="adm-confirm-pass" class="form-control" required minlength="3" placeholder="Nhập lại mật khẩu mới">
+          </div>
+
+          <button type="submit" class="btn-checkout" style="background:#2b2724;margin-top:10px;">
+            🔑 Cập Nhật Mật Khẩu Mới
+          </button>
+        </form>
+      </div>
+
       <div class="admin-table-container">
         <div class="admin-table-toolbar">
-          <strong style="font-size:14px;color:var(--dark-ink);">Danh sách hội viên tích điểm (${customers.length})</strong>
-          <span style="font-size:12px;color:var(--text-muted);">Quy tắc: 10.000đ = 1 điểm. Khách được đổi điểm trừ tiền trên mỗi bill.</span>
+          <div>
+            <strong style="font-size:15px;color:var(--dark-ink);">Danh Sách Nhân Sự & Quản Trị Bếp (${allStaff.length})</strong>
+            <div style="font-size:12px;color:var(--text-muted);">Tất cả tài khoản được cấp quyền truy cập hệ thống quản trị comtam.net</div>
+          </div>
+          <button type="button" class="btn-checkout" style="width:auto;padding:8px 16px;font-size:12.5px;background:#2b2724;" onclick="window.ComTamApp.openCreateAdminModal()">
+            ➕ Thêm Quản Trị Viên / Nhân Viên
+          </button>
         </div>
 
         <div style="overflow-x:auto;">
           <table class="admin-table">
             <thead>
               <tr>
-                <th>Mã Thẻ</th>
-                <th>Tên Khách Hàng</th>
-                <th>SĐT / Email</th>
-                <th>Hạng Thẻ</th>
-                <th>Điểm Hiện Có</th>
-                <th>Tổng Chi Tiêu</th>
-                <th>Điều Chỉnh Điểm</th>
+                <th>Nhân Sự</th>
+                <th>Tài Khoản / SĐT</th>
+                <th>Email</th>
+                <th>Phân Quyền</th>
+                <th>Trạng Thái</th>
+                <th>Thao Tác</th>
               </tr>
             </thead>
             <tbody>
-              ${customers.map(u => `
+              ${allStaff.map(s => `
                 <tr>
-                  <td><b>${u.membershipNumber}</b></td>
-                  <td><b>${u.name}</b></td>
                   <td>
-                    <div>${u.phone}</div>
-                    <small style="color:var(--text-muted);">${u.email || ''}</small>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <div class="user-avatar-mini" style="background:#2b2724;">${s.name.charAt(0)}</div>
+                      <b>${s.name}</b>
+                    </div>
+                  </td>
+                  <td>${s.phone || 'admin'}</td>
+                  <td>${s.email || '-'}</td>
+                  <td>
+                    <span class="status-badge ${s.role === 'admin' ? 'cooking' : 'delivering'}" style="font-size:11px;">
+                      ${s.role === 'admin' ? '🛡️ Quản Trị Viên (Admin)' : '👨‍🍳 Nhân Viên Bếp (Staff)'}
+                    </span>
+                  </td>
+                  <td><span class="status-badge delivered" style="font-size:11px;">Hoạt động</span></td>
+                  <td>
+                    ${s.id === 'admin_01' || s.id === admin.id ? `
+                      <small style="color:var(--text-muted);font-weight:600;">(Đang đăng nhập)</small>
+                    ` : `
+                      <button type="button" class="btn-sm-action danger" onclick="window.ComTamApp.adminDeleteStaff('${s.id}', '${s.name}')">Xóa quyền</button>
+                    `}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  let crmSearchQuery = '';
+  let crmSelectedTier = 'all';
+
+  function renderMembersTab(users) {
+    let customers = users.filter(u => u.role === 'customer');
+
+    if (crmSearchQuery) {
+      const q = crmSearchQuery.toLowerCase();
+      customers = customers.filter(c => 
+        (c.name && c.name.toLowerCase().includes(q)) ||
+        (c.phone && c.phone.includes(q)) ||
+        (c.email && c.email.toLowerCase().includes(q)) ||
+        (c.membershipNumber && c.membershipNumber.toLowerCase().includes(q)) ||
+        (c.membership_number && c.membership_number.toLowerCase().includes(q))
+      );
+    }
+
+    if (crmSelectedTier !== 'all') {
+      customers = customers.filter(c => c.tier === crmSelectedTier);
+    }
+
+    const totalCustPoints = customers.reduce((sum, c) => sum + (c.points || 0), 0);
+    const totalCustSpent = customers.reduce((sum, c) => sum + (c.totalSpent || c.total_spent || 0), 0);
+
+    return `
+      <div class="crm-toolbar">
+        <div class="crm-search-box">
+          <input type="text" id="crm-search-input" class="form-control" style="font-size:13px;" placeholder="🔍 Tìm theo Tên, SĐT, Email, Mã thẻ..." value="${crmSearchQuery}" oninput="window.ComTamApp.handleCrmSearch(this.value)">
+          <select id="crm-filter-tier" class="form-control" style="width:140px;font-size:13px;" onchange="window.ComTamApp.handleCrmFilter(this.value)">
+            <option value="all" ${crmSelectedTier === 'all' ? 'selected' : ''}>Tất cả hạng</option>
+            <option value="Diamond" ${crmSelectedTier === 'Diamond' ? 'selected' : ''}>Kim Cương</option>
+            <option value="Gold" ${crmSelectedTier === 'Gold' ? 'selected' : ''}>Vàng (Gold)</option>
+            <option value="Silver" ${crmSelectedTier === 'Silver' ? 'selected' : ''}>Bạc (Silver)</option>
+          </select>
+        </div>
+
+        <button type="button" class="btn-checkout" style="width:auto;padding:8px 18px;font-size:13px;" onclick="window.ComTamApp.openCreateCustomerModal()">
+          ➕ Đăng Ký Khách Hàng Mới Tại Quầy
+        </button>
+      </div>
+
+      <div class="membership-stats" style="margin-bottom:16px;">
+        <div class="member-stat-box">
+          <small>Hội viên hiển thị</small>
+          <strong>${customers.length} khách</strong>
+        </div>
+        <div class="member-stat-box highlight">
+          <small>Tổng điểm tích lũy</small>
+          <strong>${totalCustPoints} điểm</strong>
+        </div>
+        <div class="member-stat-box">
+          <small>Tổng doanh thu hội viên</small>
+          <strong>${formatPrice(totalCustSpent)} đ</strong>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Mã Thẻ VIP</th>
+                <th>Khách Hàng</th>
+                <th>Liên Hệ (SĐT / Email)</th>
+                <th>Địa Chỉ Nhận Cơm</th>
+                <th>Hạng Thẻ</th>
+                <th>Điểm Tích Lũy</th>
+                <th>Tổng Chi Tiêu</th>
+                <th>Thao Tác Quản Lý CRM</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${customers.length === 0 ? `
+                <tr>
+                  <td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">
+                    Không tìm thấy khách hàng nào khớp với tìm kiếm "${crmSearchQuery}".
+                  </td>
+                </tr>
+              ` : customers.map(u => `
+                <tr>
+                  <td><b>${u.membershipNumber || u.membership_number}</b></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <div class="user-avatar-mini">${u.name ? u.name.charAt(0) : 'U'}</div>
+                      <div>
+                        <strong>${u.name}</strong>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div><b>${u.phone}</b></div>
+                    <small style="color:var(--text-muted);">${u.email || 'Chưa cập nhật'}</small>
+                  </td>
+                  <td style="max-width:180px;font-size:12px;color:#555;">
+                    ${u.address || '<i style="color:#aaa;">Chưa có</i>'}
                   </td>
                   <td>
                     <span class="status-badge ${u.tier === 'Diamond' ? 'delivering' : u.tier === 'Gold' ? 'cooking' : 'pending_payment'}" style="font-size:11px;">
@@ -1822,14 +2149,26 @@
                     </span>
                   </td>
                   <td>
-                    <b style="color:var(--primary-color);font-size:15px;">${u.points || 0}</b> <small>điểm</small>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <b style="color:var(--primary-color);font-size:14px;">${u.points || 0}</b> <small>đ</small>
+                      <button type="button" class="btn-sm-action" style="padding:1px 5px;font-size:10px;" onclick="window.ComTamApp.adminAdjustPoints('${u.id}', 50)">+50</button>
+                    </div>
                   </td>
-                  <td style="font-size:13px;font-weight:600;">${formatPrice(u.totalSpent || 0)} đ</td>
+                  <td style="font-size:13px;font-weight:600;">${formatPrice(u.totalSpent || u.total_spent || 0)} đ</td>
                   <td>
-                    <div style="display:flex;gap:6px;">
-                      <button type="button" class="btn-sm-action" onclick="window.ComTamApp.adminAdjustPoints('${u.id}', 50)">+50đ</button>
-                      <button type="button" class="btn-sm-action" onclick="window.ComTamApp.adminAdjustPoints('${u.id}', 100)">+100đ</button>
-                      <button type="button" class="btn-sm-action danger" onclick="window.ComTamApp.adminAdjustPoints('${u.id}', -50)">-50đ</button>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <button type="button" class="btn-sm-action" title="Xem chi tiết hồ sơ & tất cả đơn hàng" onclick="window.ComTamApp.openCustomerDetailModal('${u.id}')">
+                        👁️ Chi Tiết
+                      </button>
+                      <button type="button" class="btn-sm-action" title="Sửa thông tin khách hàng" onclick="window.ComTamApp.openEditCustomerModal('${u.id}')">
+                        ✏️ Sửa
+                      </button>
+                      <button type="button" class="btn-sm-action" title="Cấp lại mật khẩu cho khách" onclick="window.ComTamApp.promptResetPassword('${u.id}', '${u.name}')">
+                        🔑 Đổi MK
+                      </button>
+                      <button type="button" class="btn-sm-action danger" title="Xóa tài khoản khách hàng" onclick="window.ComTamApp.adminDeleteCustomer('${u.id}', '${u.name}')">
+                        🗑️ Xóa
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -1839,6 +2178,285 @@
         </div>
       </div>
     `;
+  }
+
+  // --- CRM Modals Functions ---
+  async function openCustomerDetailModal(userId) {
+    const modal = document.querySelector('#customer-detail-modal-overlay');
+    const body = document.querySelector('#customer-detail-modal-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = `<p style="text-align:center;padding:24px;font-size:14px;color:var(--dark-ink);">⏳ Đang nạp hồ sơ & lịch sử đơn hàng từ PostgreSQL...</p>`;
+    modal.classList.add('active');
+
+    const data = await store.getUserDetail(userId);
+    if (!data || !data.user) {
+      body.innerHTML = `<p style="color:#d9534f;text-align:center;padding:20px;">Không tìm thấy khách hàng này.</p>`;
+      return;
+    }
+
+    const u = data.user;
+    const orders = data.orders || [];
+    const tier = u.tier || 'Silver';
+    const tierNameVi = tier === 'Diamond' ? 'HỘI VIÊN KIM CƯƠNG' : tier === 'Gold' ? 'HỘI VIÊN VÀNG' : 'HỘI VIÊN BẠC';
+
+    body.innerHTML = `
+      <div style="display:flex;gap:16px;align-items:center;background:#fff8ee;border:1px solid #ebdccf;padding:16px;border-radius:var(--radius-sm);margin-bottom:18px;">
+        <div class="user-avatar-mini" style="width:50px;height:50px;font-size:22px;">${u.name.charAt(0)}</div>
+        <div style="flex:1;">
+          <h4 style="margin:0 0 4px;font-size:18px;color:var(--dark-ink);">${u.name}</h4>
+          <div style="font-size:12.5px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;">
+            <span>📞 <b>${u.phone}</b></span>
+            <span>✉️ ${u.email || 'Chưa có email'}</span>
+            <span>📍 ${u.address || 'Chưa cập nhật địa chỉ'}</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <span class="status-badge ${tier === 'Diamond' ? 'delivering' : tier === 'Gold' ? 'cooking' : 'pending_payment'}" style="font-size:12px;margin-bottom:4px;display:inline-block;">${tierNameVi}</span>
+          <div style="font-size:12px;color:var(--text-muted);">Mã thẻ: <b>${u.membership_number || u.membershipNumber}</b></div>
+        </div>
+      </div>
+
+      <div class="membership-stats" style="margin-bottom:20px;">
+        <div class="member-stat-box highlight">
+          <small>Điểm Tích Lũy</small>
+          <strong>${u.points || 0} điểm</strong>
+        </div>
+        <div class="member-stat-box">
+          <small>Tổng Chi Tiêu</small>
+          <strong>${formatPrice(u.total_spent || u.totalSpent || 0)} đ</strong>
+        </div>
+        <div class="member-stat-box">
+          <small>Tổng Số Đơn Đã Đặt</small>
+          <strong>${orders.length} đơn</strong>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h4 style="margin:0;font-size:15px;color:var(--dark-ink);">📋 Toàn Bộ Lịch Sử Đơn Hàng Của Khách (${orders.length})</h4>
+        <button type="button" class="btn-sm-action" onclick="window.ComTamApp.openEditCustomerModal('${u.id}')">✏️ Sửa Khách Hàng</button>
+      </div>
+
+      ${orders.length === 0 ? `
+        <div style="text-align:center;padding:26px;background:#faf6f0;border-radius:8px;color:var(--text-muted);">
+          Khách hàng này chưa có đơn hàng nào trong hệ thống.
+        </div>
+      ` : `
+        <div style="max-height:280px;overflow-y:auto;border:1px solid #ebdccf;border-radius:8px;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Mã Đơn</th>
+                <th>Thời Gian</th>
+                <th>Món Đặt</th>
+                <th>Tổng Tiền</th>
+                <th>Hình Thức</th>
+                <th>Trạng Thái</th>
+                <th>In Bếp</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${orders.map(o => {
+                const items = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
+                const itemsText = items.map(it => `${it.quantity}x ${it.dishName || it.name}`).join(', ');
+                return `
+                  <tr>
+                    <td><b>${o.order_code || o.orderCode}</b></td>
+                    <td style="font-size:11.5px;color:var(--text-muted);">${o.created_at || o.createdAt}</td>
+                    <td style="max-width:200px;font-size:12px;" title="${itemsText}">
+                      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${itemsText}</div>
+                    </td>
+                    <td><b>${formatPrice(o.total_amount || o.totalAmount)} đ</b></td>
+                    <td style="font-size:12px;">${(o.order_type === 'dine_in' || o.orderType === 'dine_in') ? `Bàn ${o.table_number || o.tableNumber}` : 'Giao tận nơi'}</td>
+                    <td>
+                      <span class="status-badge ${o.order_status || o.orderStatus}" style="font-size:10.5px;">
+                        ${o.order_status || o.orderStatus}
+                      </span>
+                    </td>
+                    <td>
+                      <button type="button" class="btn-sm-action" onclick="window.ComTamApp.openKitchenTicket('${o.id}')" title="In phiếu bếp">🖨️ In</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
+    `;
+  }
+
+  function openEditCustomerModal(userId) {
+    const modal = document.querySelector('#customer-edit-modal-overlay');
+    const body = document.querySelector('#customer-edit-modal-body');
+    if (!modal || !body) return;
+
+    const u = store.getUsers().find(x => x.id === userId);
+    if (!u) {
+      showToast('Không tìm thấy người dùng', 'error');
+      return;
+    }
+
+    body.innerHTML = `
+      <form id="form-edit-customer" onsubmit="window.ComTamApp.handleSaveEditCustomer(event, '${u.id}')">
+        <div class="form-group">
+          <label for="ed-cust-name">Họ và tên khách hàng *</label>
+          <input type="text" id="ed-cust-name" class="form-control" required value="${u.name}">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="ed-cust-phone">Số điện thoại *</label>
+            <input type="tel" id="ed-cust-phone" class="form-control" required value="${u.phone}">
+          </div>
+          <div class="form-group">
+            <label for="ed-cust-email">Email</label>
+            <input type="email" id="ed-cust-email" class="form-control" value="${u.email || ''}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ed-cust-address">Địa chỉ nhận cơm</label>
+          <input type="text" id="ed-cust-address" class="form-control" value="${u.address || ''}">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="ed-cust-tier">Hạng thẻ hội viên</label>
+            <select id="ed-cust-tier" class="form-control">
+              <option value="Silver" ${u.tier === 'Silver' ? 'selected' : ''}>Bạc (Silver)</option>
+              <option value="Gold" ${u.tier === 'Gold' ? 'selected' : ''}>Vàng (Gold)</option>
+              <option value="Diamond" ${u.tier === 'Diamond' ? 'selected' : ''}>Kim Cương (Diamond)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="ed-cust-points">Điểm tích lũy</label>
+            <input type="number" id="ed-cust-points" class="form-control" required value="${u.points || 0}" min="0">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button type="submit" class="btn-checkout" style="flex:1;">
+            💾 Lưu Thay Đổi
+          </button>
+          <button type="button" class="btn-sm-action" style="padding:10px 16px;" onclick="document.querySelector('#customer-edit-modal-overlay').classList.remove('active')">
+            Hủy
+          </button>
+        </div>
+      </form>
+    `;
+    modal.classList.add('active');
+  }
+
+  function openCreateCustomerModal() {
+    const modal = document.querySelector('#customer-create-modal-overlay');
+    const body = document.querySelector('#customer-create-modal-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = `
+      <form id="form-create-customer" onsubmit="window.ComTamApp.handleCreateCustomer(event)">
+        <div class="form-group">
+          <label for="new-cust-name">Họ và tên khách hàng *</label>
+          <input type="text" id="new-cust-name" class="form-control" required placeholder="Ví dụ: Lê Minh Trí">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="new-cust-phone">Số điện thoại *</label>
+            <input type="tel" id="new-cust-phone" class="form-control" required placeholder="0987654321">
+          </div>
+          <div class="form-group">
+            <label for="new-cust-email">Email (tùy chọn)</label>
+            <input type="email" id="new-cust-email" class="form-control" placeholder="khach@gmail.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="new-cust-address">Địa chỉ khách hàng (tùy chọn)</label>
+          <input type="text" id="new-cust-address" class="form-control" placeholder="Số nhà, tên đường, phường, quận...">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="new-cust-tier">Hạng thẻ ban đầu</label>
+            <select id="new-cust-tier" class="form-control">
+              <option value="Silver" selected>Bạc (Silver)</option>
+              <option value="Gold">Vàng (Gold)</option>
+              <option value="Diamond">Kim Cương (Diamond)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="new-cust-points">Điểm tặng ban đầu</label>
+            <input type="number" id="new-cust-points" class="form-control" value="50" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="new-cust-pass">Mật khẩu tài khoản *</label>
+          <input type="password" id="new-cust-pass" class="form-control" value="123" required placeholder="Mặc định: 123">
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button type="submit" class="btn-checkout" style="flex:1;">
+            ➕ Đăng Ký Khách Hàng
+          </button>
+          <button type="button" class="btn-sm-action" style="padding:10px 16px;" onclick="document.querySelector('#customer-create-modal-overlay').classList.remove('active')">
+            Hủy
+          </button>
+        </div>
+      </form>
+    `;
+    modal.classList.add('active');
+  }
+
+  function openCreateAdminModal() {
+    const modal = document.querySelector('#admin-create-modal-overlay');
+    const body = document.querySelector('#admin-create-modal-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = `
+      <form id="form-create-admin" onsubmit="window.ComTamApp.handleCreateAdmin(event)">
+        <div class="form-group">
+          <label for="new-adm-name">Họ và tên nhân sự *</label>
+          <input type="text" id="new-adm-name" class="form-control" required placeholder="Ví dụ: Nguyễn Văn Hùng">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="new-adm-phone">Số điện thoại *</label>
+            <input type="tel" id="new-adm-phone" class="form-control" required placeholder="0911223344">
+          </div>
+          <div class="form-group">
+            <label for="new-adm-email">Email quản trị *</label>
+            <input type="email" id="new-adm-email" class="form-control" required placeholder="staff@comtam.net">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="new-adm-role">Phân quyền chức vụ</label>
+            <select id="new-adm-role" class="form-control">
+              <option value="admin">Quản Trị Viên (Admin)</option>
+              <option value="staff">Nhân Viên Bếp (Staff)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="new-adm-pass">Mật khẩu đăng nhập *</label>
+            <input type="password" id="new-adm-pass" class="form-control" required minlength="4" placeholder="Tối thiểu 4 ký tự">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button type="submit" class="btn-checkout" style="background:#2b2724;flex:1;">
+            ➕ Tạo Tài Khoản Quản Trị
+          </button>
+          <button type="button" class="btn-sm-action" style="padding:10px 16px;" onclick="document.querySelector('#admin-create-modal-overlay').classList.remove('active')">
+            Hủy
+          </button>
+        </div>
+      </form>
+    `;
+    modal.classList.add('active');
   }
 
   // --- Add / Edit Dish Modal ---
@@ -2014,30 +2632,95 @@
         openAdminModal();
       }
     },
-    handleCustomerLogin: (e) => {
+    switchMemberTab: (tab) => {
+      activeMemberTab = tab;
+      const u = store.getCurrentUser();
+      const body = document.querySelector('#membership-modal-body');
+      if (body && u) renderMemberCardView(body, u);
+    },
+    handleCustomerLogin: async (e) => {
       e.preventDefault();
-      const id = document.querySelector('#cust-login-id').value;
+      const id = document.querySelector('#cust-login-id').value.trim();
       const pass = document.querySelector('#cust-login-pass').value;
-      const res = store.login(id, pass);
-      if (res.success) {
+      const res = await store.login(id, pass);
+      if (res.success && res.user) {
         showToast(`Đăng nhập thành công! Chào ${res.user.name}`, 'success');
         openMembershipModal();
       } else {
-        showToast(res.message, 'error');
+        showToast(res.error || res.message || 'Sai thông tin đăng nhập hoặc mật khẩu', 'error');
       }
     },
-    handleCustomerRegister: (e) => {
+    handleCustomerRegister: async (e) => {
       e.preventDefault();
-      const name = document.querySelector('#cust-reg-name').value;
-      const phone = document.querySelector('#cust-reg-phone').value;
-      const email = document.querySelector('#cust-reg-email').value;
+      const name = document.querySelector('#cust-reg-name').value.trim();
+      const phone = document.querySelector('#cust-reg-phone').value.trim();
+      const email = document.querySelector('#cust-reg-email').value.trim();
       const pass = document.querySelector('#cust-reg-pass').value;
-      const res = store.register(name, phone, email, pass);
-      if (res.success) {
+      const res = await store.register(name, phone, email, pass);
+      if (res.success && res.user) {
         showToast(`Chúc mừng ${name} đã nhận thẻ thành viên + 50 điểm thưởng!`, 'success');
         openMembershipModal();
       } else {
-        showToast(res.message, 'error');
+        showToast(res.error || res.message || 'Lỗi khi đăng ký', 'error');
+      }
+    },
+    handleUpdateProfile: async (e) => {
+      e.preventDefault();
+      const u = store.getCurrentUser();
+      if (!u) return;
+      const name = document.querySelector('#member-edit-name').value.trim();
+      const phone = document.querySelector('#member-edit-phone').value.trim();
+      const email = document.querySelector('#member-edit-email').value.trim();
+      const address = document.querySelector('#member-edit-address').value.trim();
+
+      const res = await store.updateUser(u.id, { name, phone, email, address });
+      if (res.success) {
+        showToast('✓ Đã cập nhật thông tin cá nhân thành công!', 'success');
+        activeMemberTab = 'profile';
+        openMembershipModal();
+      } else {
+        showToast(res.message || 'Lỗi cập nhật', 'error');
+      }
+    },
+    handleChangePassword: async (e) => {
+      e.preventDefault();
+      const u = store.getCurrentUser();
+      if (!u) return;
+      const oldPass = document.querySelector('#member-old-pass').value;
+      const newPass = document.querySelector('#member-new-pass').value;
+      const confirmPass = document.querySelector('#member-confirm-pass').value;
+
+      if (newPass !== confirmPass) {
+        showToast('Mật khẩu mới và xác nhận mật khẩu không khớp', 'error');
+        return;
+      }
+
+      const res = await store.changePassword(u.id, oldPass, newPass);
+      if (res.success) {
+        showToast('✓ Đổi mật khẩu tài khoản thành công!', 'success');
+        activeMemberTab = 'card';
+        openMembershipModal();
+      } else {
+        showToast(res.error || res.message || 'Mật khẩu cũ không chính xác', 'error');
+      }
+    },
+    handleDeleteMyAccount: async () => {
+      const u = store.getCurrentUser();
+      if (!u) return;
+      const check = document.querySelector('#confirm-delete-user-check');
+      if (!check || !check.checked) {
+        showToast('Vui lòng tích xác nhận đồng ý xóa tài khoản', 'warning');
+        return;
+      }
+
+      if (confirm(`Bạn có chắc chắn 100% muốn xóa tài khoản "${u.name}"? Thao tác này không thể hoàn tác!`)) {
+        const res = await store.deleteUser(u.id);
+        if (res.success) {
+          showToast('Đã xóa tài khoản cá nhân. Hẹn gặp lại quý khách!', 'info');
+          closeMembershipModal();
+        } else {
+          showToast(res.error || res.message || 'Lỗi khi xóa tài khoản', 'error');
+        }
       }
     },
     logout: () => {
@@ -2059,16 +2742,154 @@
       renderAdminDashboard();
     },
     simulateNewOrder: simulateNewOrder,
-    handleAdminLogin: (e) => {
+    handleAdminLogin: async (e) => {
       e.preventDefault();
-      const user = document.querySelector('#admin-user-input').value;
+      const user = document.querySelector('#admin-user-input').value.trim();
       const pass = document.querySelector('#admin-pass-input').value;
-      const res = store.login(user, pass);
-      if (res.success && res.user.role === 'admin') {
-        showToast('Chào Quản trị viên Bếp Ông Mập!', 'success');
+      const res = await store.adminLogin(user, pass);
+      if (res.success && res.user && res.user.role === 'admin') {
+        showToast(`Chào Quản trị viên ${res.user.name}!`, 'success');
         renderAdminDashboard();
       } else {
-        showToast('Thông tin quản trị viên không đúng', 'error');
+        showToast(res.error || res.message || 'Tài khoản hoặc mật khẩu quản trị viên không chính xác', 'error');
+      }
+    },
+    handleUpdateAdminProfile: async (e) => {
+      e.preventDefault();
+      const adm = store.getCurrentUser();
+      if (!adm) return;
+      const name = document.querySelector('#adm-prof-name').value.trim();
+      const phone = document.querySelector('#adm-prof-phone').value.trim();
+      const email = document.querySelector('#adm-prof-email').value.trim();
+      const address = document.querySelector('#adm-prof-address').value.trim();
+
+      const res = await store.updateUser(adm.id, { name, phone, email, address });
+      if (res.success) {
+        showToast('✓ Đã cập nhật hồ sơ quản trị viên!', 'success');
+        renderAdminDashboard();
+      } else {
+        showToast(res.error || res.message || 'Lỗi cập nhật hồ sơ', 'error');
+      }
+    },
+    handleChangeAdminPassword: async (e) => {
+      e.preventDefault();
+      const adm = store.getCurrentUser();
+      if (!adm) return;
+      const oldPass = document.querySelector('#adm-old-pass').value;
+      const newPass = document.querySelector('#adm-new-pass').value;
+      const confirmPass = document.querySelector('#adm-confirm-pass').value;
+
+      if (newPass !== confirmPass) {
+        showToast('Mật khẩu mới và xác nhận không khớp', 'error');
+        return;
+      }
+
+      const res = await store.changePassword(adm.id, oldPass, newPass);
+      if (res.success) {
+        showToast('✓ Đổi mật khẩu quản trị viên thành công!', 'success');
+        renderAdminDashboard();
+      } else {
+        showToast(res.error || res.message || 'Mật khẩu cũ không chính xác', 'error');
+      }
+    },
+    handleCrmSearch: (val) => {
+      crmSearchQuery = val.trim();
+      const pane = document.querySelector('#admin-tab-members');
+      if (pane) pane.innerHTML = renderMembersTab(store.getUsers());
+    },
+    handleCrmFilter: (val) => {
+      crmSelectedTier = val;
+      const pane = document.querySelector('#admin-tab-members');
+      if (pane) pane.innerHTML = renderMembersTab(store.getUsers());
+    },
+    openCustomerDetailModal: openCustomerDetailModal,
+    openEditCustomerModal: openEditCustomerModal,
+    handleSaveEditCustomer: async (e, userId) => {
+      e.preventDefault();
+      const name = document.querySelector('#ed-cust-name').value.trim();
+      const phone = document.querySelector('#ed-cust-phone').value.trim();
+      const email = document.querySelector('#ed-cust-email').value.trim();
+      const address = document.querySelector('#ed-cust-address').value.trim();
+      const tier = document.querySelector('#ed-cust-tier').value;
+      const points = parseInt(document.querySelector('#ed-cust-points').value, 10);
+
+      const res = await store.updateUser(userId, { name, phone, email, address, tier, points });
+      if (res.success) {
+        showToast(`✓ Đã cập nhật khách hàng ${name}`, 'success');
+        document.querySelector('#customer-edit-modal-overlay')?.classList.remove('active');
+        renderAdminDashboard();
+      } else {
+        showToast(res.message || 'Lỗi khi cập nhật khách hàng', 'error');
+      }
+    },
+    promptResetPassword: async (userId, userName) => {
+      const newPass = prompt(`Nhập mật khẩu mới cấp cho khách hàng "${userName}":`, '123456');
+      if (!newPass) return;
+      const res = await store.changePassword(userId, '', newPass, true);
+      if (res.success) {
+        showToast(`✓ Đã cấp lại mật khẩu cho ${userName}: ${newPass}`, 'success');
+      } else {
+        showToast(res.message || 'Lỗi khi đặt lại mật khẩu', 'error');
+      }
+    },
+    adminDeleteCustomer: async (userId, userName) => {
+      if (confirm(`Bạn có chắc muốn xoá khách hàng "${userName}" khỏi hệ thống? Dữ liệu không thể khôi phục!`)) {
+        const res = await store.deleteUser(userId);
+        if (res.success) {
+          showToast(`Đã xoá khách hàng ${userName}`, 'info');
+          renderAdminDashboard();
+        } else {
+          showToast(res.message || 'Lỗi khi xoá khách hàng', 'error');
+        }
+      }
+    },
+    openCreateCustomerModal: openCreateCustomerModal,
+    handleCreateCustomer: async (e) => {
+      e.preventDefault();
+      const name = document.querySelector('#new-cust-name').value.trim();
+      const phone = document.querySelector('#new-cust-phone').value.trim();
+      const email = document.querySelector('#new-cust-email').value.trim();
+      const address = document.querySelector('#new-cust-address').value.trim();
+      const tier = document.querySelector('#new-cust-tier').value;
+      const points = parseInt(document.querySelector('#new-cust-points').value, 10) || 50;
+      const password = document.querySelector('#new-cust-pass').value;
+
+      const res = await store.createUser({ name, phone, email, address, tier, points, password, role: 'customer' });
+      if (res.success) {
+        showToast(`✓ Đã tạo thành công khách hàng mới: ${name}`, 'success');
+        document.querySelector('#customer-create-modal-overlay')?.classList.remove('active');
+        renderAdminDashboard();
+      } else {
+        showToast(res.error || res.message || 'Lỗi khi tạo khách hàng', 'error');
+      }
+    },
+    openCreateAdminModal: openCreateAdminModal,
+    handleCreateAdmin: async (e) => {
+      e.preventDefault();
+      const name = document.querySelector('#new-adm-name').value.trim();
+      const phone = document.querySelector('#new-adm-phone').value.trim();
+      const email = document.querySelector('#new-adm-email').value.trim();
+      const role = document.querySelector('#new-adm-role').value;
+      const password = document.querySelector('#new-adm-pass').value;
+
+      const res = await store.createUser({ name, phone, email, role, password, tier: 'Diamond', points: 0 });
+      if (res.success) {
+        showToast(`✓ Đã thêm nhân sự: ${name} (${role === 'admin' ? 'Quản Trị Viên' : 'Nhân Viên Bếp'})`, 'success');
+        document.querySelector('#admin-create-modal-overlay')?.classList.remove('active');
+        renderAdminDashboard();
+      } else {
+        showToast(res.error || res.message || 'Lỗi khi tạo nhân sự', 'error');
+      }
+    },
+    adminDeleteStaff: async (userId, userName) => {
+      if (confirm(`Bạn có chắc muốn xoá quyền quản trị của "${userName}"?`)) {
+        const res = await store.deleteUser(userId);
+        if (res.success) {
+          showToast(`Đã thu hồi quyền quản trị của ${userName}`, 'info');
+          renderAdminDashboard();
+        } else {
+          showToast(res.message || 'Lỗi khi xoá quyền', 'error');
+        }
       }
     },
     adminApprovePayment: (orderId) => {

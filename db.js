@@ -87,20 +87,34 @@ async function initDB() {
         status VARCHAR(32) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Ensure new columns exist for existing databases
+      ALTER TABLE dishes ADD COLUMN IF NOT EXISTS components JSONB DEFAULT '[]';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(32) DEFAULT 'active';
     `);
 
-    // Check if dishes need seeding
+    // Check if dishes need seeding or components sync
     const dishCount = await client.query('SELECT COUNT(*) FROM dishes');
     if (parseInt(dishCount.rows[0].count, 10) === 0) {
       console.log('Seeding initial 12 Cơm Tấm dishes into PostgreSQL...');
       for (const d of restaurantMenu.dishes) {
         await client.query(`
-          INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, available)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, components, available)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `, [
           d.id, d.name, d.category, d.price, d.time, d.image, d.description,
-          JSON.stringify(d.tags || []), JSON.stringify(d.ingredients || []), d.available !== false
+          JSON.stringify(d.tags || []), JSON.stringify(d.ingredients || []),
+          JSON.stringify(d.components || []), d.available !== false
         ]);
+      }
+    } else {
+      // Sync components into existing dishes
+      for (const d of restaurantMenu.dishes) {
+        await client.query(`
+          UPDATE dishes 
+          SET components = $1, tags = $2
+          WHERE id = $3
+        `, [JSON.stringify(d.components || []), JSON.stringify(d.tags || []), d.id]);
       }
     }
 

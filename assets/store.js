@@ -328,12 +328,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ identifier, password })
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.user) {
-            this.setCurrentUser(data.user);
-            return data;
-          }
+        const data = await res.json();
+        if (res.ok && data.success && data.user) {
+          this.setCurrentUser(data.user);
+          return data;
+        }
+        if (!res.ok) {
+          return data;
         }
       } catch (e) {}
 
@@ -394,6 +395,141 @@
 
     logout() {
       this.setCurrentUser(null);
+    },
+
+    async adminLogin(identifier, password) {
+      try {
+        const res = await fetch('/api/auth/admin-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.user) {
+          this.setCurrentUser(data.user);
+          return data;
+        }
+        return data;
+      } catch (e) {}
+
+      // Fallback
+      const users = this.getUsers();
+      const term = identifier.trim().toLowerCase();
+      const user = users.find(u => 
+        (u.phone === term || u.email?.toLowerCase() === term || u.membershipNumber?.toLowerCase() === term || (u.role === 'admin' && term === 'admin')) &&
+        u.password === password && u.role === 'admin'
+      );
+      if (user) {
+        this.setCurrentUser(user);
+        return { success: true, user };
+      }
+      return { success: false, message: 'Sai tài khoản hoặc mật khẩu quản trị viên' };
+    },
+
+    async updateUser(userId, updates) {
+      try {
+        const res = await fetch(`/api/users/${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            const users = this.getUsers();
+            const idx = users.findIndex(u => u.id === userId);
+            if (idx !== -1) users[idx] = { ...users[idx], ...data.user };
+            this.saveUsers(users);
+            const cur = this.getCurrentUser();
+            if (cur && cur.id === userId) {
+              this.setCurrentUser({ ...cur, ...data.user });
+            }
+            return data;
+          }
+        }
+      } catch (e) {}
+
+      const users = this.getUsers();
+      const idx = users.findIndex(u => u.id === userId);
+      if (idx !== -1) {
+        users[idx] = { ...users[idx], ...updates };
+        this.saveUsers(users);
+        const cur = this.getCurrentUser();
+        if (cur && cur.id === userId) {
+          this.setCurrentUser({ ...cur, ...updates });
+        }
+        return { success: true, user: users[idx] };
+      }
+      return { success: false, message: 'Không tìm thấy người dùng' };
+    },
+
+    async changePassword(userId, oldPassword, newPassword, isAdminOverride = false) {
+      try {
+        const res = await fetch(`/api/users/${userId}/password`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPassword, newPassword, isAdminOverride })
+        });
+        const data = await res.json();
+        return data;
+      } catch (e) {
+        return { success: false, message: 'Lỗi kết nối máy chủ' };
+      }
+    },
+
+    async deleteUser(userId) {
+      try {
+        const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const users = this.getUsers().filter(u => u.id !== userId);
+          this.saveUsers(users);
+          const cur = this.getCurrentUser();
+          if (cur && cur.id === userId) {
+            this.logout();
+          }
+          return data;
+        }
+        return data;
+      } catch (e) {}
+
+      const users = this.getUsers().filter(u => u.id !== userId);
+      this.saveUsers(users);
+      return { success: true };
+    },
+
+    async createUser(userData) {
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const users = this.getUsers();
+          users.unshift(data.user);
+          this.saveUsers(users);
+          return data;
+        }
+        return data;
+      } catch (e) {
+        return { success: false, message: 'Lỗi khi tạo người dùng' };
+      }
+    },
+
+    async getUserDetail(userId) {
+      try {
+        const res = await fetch(`/api/users/${userId}`);
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (e) {}
+
+      const user = this.getUsers().find(u => u.id === userId);
+      if (!user) return null;
+      const orders = this.getOrders().filter(o => o.phone === user.phone || (o.customerName || o.customer_name) === user.name);
+      return { user, orders };
     },
 
     async updateUserPoints(userId, deltaPoints, reason = '') {
