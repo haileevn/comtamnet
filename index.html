@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="vi" data-table="walnut">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="theme-color" content="#f5f1e8" />
+        <meta
+            name="description"
+            content="Cơm Tấm Ông Mập (comtam.net) — Đậm đà vị ngon Sài Gòn xưa. Sườn nướng than hoa, chả trứng hoàng kim, bì giòn thính thơm. Đặt hàng online giao nhanh, tích điểm thẻ VIP."
+        />
+        <title>Cơm Tấm Ông Mập — comtam.net · Hương Vị Sài Gòn Xưa</title>
+        <link rel="stylesheet" href="assets/table-presets.css" />
+        <link rel="stylesheet" href="assets/styles.css" />
+        <link rel="stylesheet" href="assets/order-styles.css" />
+    </head>
+    <body>
+        <header class="site-header">
+            <a class="brand" href="#" aria-label="Cơm Tấm Ông Mập — comtam.net Trang đầu">
+                <img class="brand-logo" src="assets/logo-ong-map.svg" alt="Cơm Tấm Ông Mập" width="250" height="56" />
+            </a>
+            <span class="header-note">COMTAM.NET · ĐẬM ĐÀ VỊ SÀI GÒN</span>
+            
+            <nav class="header-actions" aria-label="Điều hướng chính">
+                <button type="button" class="header-btn btn-table-active" id="btn-table-nav" onclick="window.ComTamApp.openWaiterModal()" style="display:none;" aria-label="Bàn ăn đang ngồi">
+                    <span class="btn-icon">📍</span> <span id="header-table-text">Bàn 01</span>
+                </button>
+                <button type="button" class="header-btn" id="btn-track-nav" onclick="window.ComTamApp.openTrackingModal()" aria-label="Tra cứu đơn hàng">
+                    <span class="btn-icon">🔍</span> <span>Tra Cứu Đơn</span>
+                </button>
+                <button type="button" class="header-btn" id="btn-member-nav" onclick="window.ComTamApp.openMembership()" aria-label="Thẻ thành viên VIP">
+                    <span class="btn-icon">💳</span> <span>Thẻ VIP</span>
+                </button>
+                <button type="button" class="header-btn btn-cart" id="btn-cart-nav" onclick="window.ComTamApp.openCart()" aria-label="Giỏ hàng">
+                    <span class="btn-icon">🛒</span> <span>Giỏ Hàng</span>
+                    <span class="cart-badge" id="cart-badge" style="display:none;">0</span>
+                </button>
+                <button type="button" class="header-btn btn-admin" id="btn-admin-nav" onclick="window.ComTamApp.openAdmin()" aria-label="Quản trị quán">
+                    <span class="btn-icon">⚙️</span> <span>Quản Trị Bếp</span>
+                </button>
+            </nav>
+        </header>
+
+        <!-- Dine-in Table Bar (Shown when seated at table or scanned QR) -->
+        <div class="dinein-table-bar" id="dinein-table-bar" style="display:none;">
+            <div class="dinein-bar-container">
+                <div class="dinein-info">
+                    <span class="dinein-badge">📍 GỌI MÓN TẠI BÀN</span>
+                    <strong class="dinein-table-num" id="dinein-table-label">BÀN 01</strong>
+                    <span class="dinein-sub-text">Quét mã QR · Nướng sườn nóng hổi mang tận bàn</span>
+                </div>
+                <div class="dinein-actions">
+                    <button type="button" class="btn-dinein-action highlight" onclick="window.ComTamApp.openWaiterModal()">
+                        <span class="icon">🔔</span> <span>Gọi Phục Vụ</span>
+                    </button>
+                    <button type="button" class="btn-dinein-action" onclick="window.ComTamApp.viewCurrentTableOrders()">
+                        <span class="icon">🧾</span> <span>Hóa Đơn Bàn</span>
+                    </button>
+                    <button type="button" class="btn-dinein-action outline" onclick="window.ComTamApp.promptSwitchTable()">
+                        <span class="icon">🔄</span> <span>Đổi Bàn</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <main class="experience">
+            <section
+                class="stage"
+                aria-label="Xem chi tiết món đang chọn"
+                aria-haspopup="dialog"
+                role="button"
+                tabindex="0"
+                id="stage"
+            >
+                <div class="table-wheel" id="wheel"><div class="table-surface"></div></div>
+                <div class="table-caption">
+                    <b>Gạo tấm thơm dẻo.<br />Sườn nướng than hoa.</b>Hương vị truyền thống<br />comtam.net Sài Gòn
+                </div>
+                <div class="orbit-hint">
+                    <img class="icon" src="assets/icons/rotate.svg" alt="" aria-hidden="true" />
+                    <span>Bấm vào bàn.<br />Khám phá món ngon.</span>
+                </div>
+            </section>
+
+            <section class="details" id="details" aria-live="polite" aria-atomic="true">
+                <div class="eyebrow" id="category"></div>
+                <h1 id="dish-name"></h1>
+                <p class="description" id="description"></p>
+                <div class="dish-meta">
+                    <span class="price" id="price"></span><span class="meta-divider"></span>
+                    <span class="preparation">
+                        <img class="icon" src="assets/icons/clock.svg" alt="" aria-hidden="true" /><span id="time"></span>
+                    </span>
+                    <span class="preparation">1 phần</span>
+                </div>
+                <div class="ingredient-tags" id="tags"></div>
+                <div style="margin-top:14px;">
+                    <button type="button" class="btn-direct-order" id="btn-quick-order" aria-label="Đặt món đang chọn">
+                        <span>⚡ Đặt Món Này Ngay</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="menu-section" id="thuc-don" aria-label="Chọn món ăn">
+                <div class="menu-heading">
+                    <h2>Hôm nay, bạn muốn <b>thưởng thức dĩa cơm tấm nào?</b></h2>
+                    <span class="menu-counter" id="counter" aria-live="polite">TRANG 01 / 03</span>
+                </div>
+                <div class="carousel">
+                    <button class="arrow-button" id="previous" aria-label="Trang menu trước">
+                        <img class="icon" src="assets/icons/chevron-left.svg" alt="" aria-hidden="true" />
+                    </button>
+                    <div class="menu-track" id="menu-track" aria-label="Danh sách món"></div>
+                    <button class="arrow-button" id="next" aria-label="Trang menu tiếp theo">
+                        <img class="icon" src="assets/icons/chevron-right.svg" alt="" aria-hidden="true" />
+                    </button>
+                </div>
+                <div class="pager" id="pager" aria-label="Chọn trang menu"></div>
+            </section>
+        </main>
+
+        <footer>
+            <span class="footer-mark">Gạo tấm thơm dẻo · Sườn nướng than hoa · Nước mắm kẹo đậm đà</span>
+            <span>CƠM TẤM ÔNG MẬP · COMTAM.NET · HOTLINE: 1900 6868</span>
+        </footer>
+
+        <!-- Original Dish Zoom Modal -->
+        <dialog class="dish-dialog" id="dish-dialog" aria-labelledby="modal-name" tabindex="-1">
+            <div class="flying-plate" id="flying-plate" aria-hidden="true">
+                <img alt="" /><span class="plate-solid"></span>
+            </div>
+            <span class="sr-only" id="detail-status" role="status"></span>
+            <article class="detail-panel" id="detail-panel" hidden>
+                <button type="button" class="dialog-close" aria-label="Đóng chi tiết món">×</button>
+                <div class="detail-kicker" id="modal-category"></div>
+                <h2 id="modal-name"></h2>
+                <p class="detail-copy" id="modal-description"></p>
+                <section class="detail-section">
+                    <h3 id="ingredients-heading">Nguyên liệu nổi bật</h3>
+                    <ul class="detail-ingredients" id="modal-ingredients" aria-labelledby="ingredients-heading"></ul>
+                </section>
+                <div class="detail-facts">
+                    <div><small>Thời gian chuẩn bị</small><strong id="modal-time"></strong></div>
+                    <div><small>Khẩu phần</small><strong>1 người thưởng thức</strong></div>
+                </div>
+                <div class="detail-bottom">
+                    <div>
+                        <span class="detail-price-label">Giá / phần</span>
+                        <div class="detail-price" id="modal-price"></div>
+                    </div>
+                    <button type="button" class="order-button" id="order-dish">
+                        <img class="icon" src="assets/icons/shopping-bag.svg" alt="" aria-hidden="true" />Đặt hàng
+                    </button>
+                </div>
+            </article>
+        </dialog>
+
+        <!-- Cart Slide-out Drawer -->
+        <div class="cart-drawer-overlay" id="cart-drawer-overlay" onclick="if(event.target===this) window.ComTamApp.closeCart();">
+            <aside class="cart-drawer" aria-label="Giỏ hàng cơm tấm">
+                <div class="cart-header">
+                    <h3><span>🛒 Giỏ Hàng Của Bạn</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeCart()" aria-label="Đóng giỏ hàng">×</button>
+                </div>
+                <div class="cart-items-list" id="cart-items-container"></div>
+                <div class="cart-footer" id="cart-footer-container"></div>
+            </aside>
+        </div>
+
+        <!-- Topping Customization Modal -->
+        <div class="modal-overlay" id="topping-modal-overlay" onclick="if(event.target===this) window.ComTamApp.closeCustomization();">
+            <div class="modal-content" role="dialog" aria-labelledby="topping-modal-title">
+                <div class="modal-header">
+                    <h3 id="topping-modal-title"><span>🍲 Chọn Topping & Ghi Chú</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeCustomization()" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="topping-modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-sm-action" onclick="window.ComTamApp.closeCustomization()">Hủy</button>
+                    <button type="button" class="btn-checkout" style="width:auto;padding:10px 22px;" onclick="window.ComTamApp.confirmAddToppingToCart()">Thêm Vào Giỏ Hàng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout & VietQR Modal -->
+        <div class="modal-overlay" id="checkout-modal-overlay" onclick="if(event.target===this) window.ComTamApp.closeCheckoutModal();">
+            <div class="modal-content" style="max-width:760px;" role="dialog" aria-labelledby="checkout-modal-title">
+                <div class="modal-header">
+                    <h3 id="checkout-modal-title"><span>🛵 Đặt Hàng & Thanh Toán Trực Tuyến</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeCheckoutModal()" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="checkout-modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Order Tracking Modal -->
+        <div class="modal-overlay" id="tracking-modal-overlay" onclick="if(event.target===this) window.ComTamApp.closeTrackingModal();">
+            <div class="modal-content" style="max-width:680px;" role="dialog" aria-labelledby="tracking-modal-title">
+                <div class="modal-header">
+                    <h3 id="tracking-modal-title"><span>📍 Theo Dõi & Tra Cứu Đơn Hàng</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeTrackingModal()" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tracking-search-bar">
+                        <input type="text" id="tracking-query-input" class="form-control" placeholder="Nhập Mã đơn (VD: CTM-7821) hoặc Số điện thoại...">
+                        <button type="button" class="btn-checkout" style="width:auto;padding:0 22px;white-space:nowrap;" onclick="window.ComTamApp.searchOrders()">Tra Cứu</button>
+                    </div>
+                    <div id="tracking-results-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIP Membership Modal -->
+        <div class="modal-overlay" id="membership-modal-overlay" onclick="if(event.target===this) window.ComTamApp.closeMembership();">
+            <div class="modal-content" style="max-width:540px;" role="dialog" aria-labelledby="membership-modal-title">
+                <div class="modal-header">
+                    <h3 id="membership-modal-title"><span>💳 Thẻ Hội Viên VIP Ông Mập</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeMembership()" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="membership-modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Admin Portal Modal -->
+        <div class="modal-overlay" id="admin-modal-overlay" onclick="if(event.target===this) window.ComTamApp.closeAdmin();">
+            <div class="modal-content admin-modal-content" role="dialog" aria-labelledby="admin-modal-title">
+                <div class="modal-header">
+                    <h3 id="admin-modal-title"><span>🛡️ Cổng Quản Trị comtam.net</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeAdmin()" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="admin-modal-body" style="padding:16px;"></div>
+            </div>
+        </div>
+
+        <!-- Dish Editor Modal (Admin) -->
+        <div class="modal-overlay" id="dish-editor-modal-overlay" onclick="if(event.target===this) window.ComTamApp.closeDishEditorModal();">
+            <div class="modal-content" style="max-width:560px;" role="dialog" aria-labelledby="dish-editor-modal-title">
+                <div class="modal-header">
+                    <h3 id="dish-editor-modal-title"><span>🍲 Thêm / Cập Nhật Món Ăn</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeDishEditorModal()" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="dish-editor-modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Thermal Kitchen Ticket / Receipt Modal -->
+        <div class="modal-overlay" id="kitchen-ticket-modal-overlay" onclick="if(event.target===this) this.classList.remove('active');">
+            <div class="modal-content" style="max-width:440px;background:#f5f1e8;padding:16px;" role="dialog" aria-labelledby="kitchen-ticket-title">
+                <div class="modal-header" style="background:#f5f1e8;padding:8px 12px;border:none;">
+                    <h3 id="kitchen-ticket-title" style="font-size:16px;"><span>🖨️ Phiếu In Nhà Bếp & Giao Hàng</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="document.querySelector('#kitchen-ticket-modal-overlay').classList.remove('active')" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="kitchen-ticket-container" style="padding:4px;"></div>
+            </div>
+        </div>
+
+        <!-- Modal Gọi Phục Vụ Tại Bàn -->
+        <div class="modal-overlay" id="waiter-modal-overlay" onclick="if(event.target===this) window.ComTamApp.closeWaiterModal();">
+            <div class="modal-content" style="max-width:540px;" role="dialog" aria-labelledby="waiter-modal-title">
+                <div class="modal-header">
+                    <h3 id="waiter-modal-title"><span>🔔 Gọi Nhân Viên Phục Vụ Tại Bàn</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="window.ComTamApp.closeWaiterModal()" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="waiter-modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Modal Xem Hóa Đơn & Món Của Bàn Hiện Tại -->
+        <div class="modal-overlay" id="table-orders-modal-overlay" onclick="if(event.target===this) this.classList.remove('active');">
+            <div class="modal-content" style="max-width:620px;" role="dialog" aria-labelledby="table-orders-title">
+                <div class="modal-header">
+                    <h3 id="table-orders-title"><span>🧾 Danh Sách Món Của Bàn</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="document.querySelector('#table-orders-modal-overlay').classList.remove('active')" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="table-orders-modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Modal Chuyển / Chọn Bàn Ăn -->
+        <div class="modal-overlay" id="switch-table-modal-overlay" onclick="if(event.target===this) this.classList.remove('active');">
+            <div class="modal-content" style="max-width:560px;" role="dialog" aria-labelledby="switch-table-title">
+                <div class="modal-header">
+                    <h3 id="switch-table-title"><span>📍 Chọn Hoặc Đổi Bàn Ăn</span></h3>
+                    <button type="button" class="modal-close-btn" onclick="document.querySelector('#switch-table-modal-overlay').classList.remove('active')" aria-label="Đóng">×</button>
+                </div>
+                <div class="modal-body" id="switch-table-modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toast-container" aria-live="assertive"></div>
+
+        <!-- Application Scripts -->
+        <script src="assets/demo-menu-data.js"></script>
+        <script src="assets/store.js"></script>
+        <script src="assets/order-system.js"></script>
+        <script src="assets/app.js"></script>
+    </body>
+</html>

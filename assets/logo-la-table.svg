@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="224" height="60" viewBox="0 0 224 60" fill="none" role="img" aria-labelledby="title">
+  <title id="title">La Table Restaurant</title>
+  <g stroke="#927044" stroke-width=".85">
+    <path d="M5 49V25C5 13.4 12.6 6 23 6s18 7.4 18 19v24H5Z"/>
+    <path d="M8 46V25C8 15.1 14.2 9 23 9s15 6.1 15 16v21" opacity=".38"/>
+  </g>
+  <g fill="#927044">
+    <path d="M12 20h10v1h-3.4v19h7.1l1.8-5.4h1L28 41H12v-1h3.1V21H12v-1Z"/>
+    <path d="M21.5 18h13l.5 5.5h-.9l-1.4-4.4h-3.2V34h2.4v.9h-7.7V34h2.4V19.1h-3.2L22 23.5h-1l.5-5.5Z"/>
+  </g>
+  <text x="57" y="31" fill="#30372f" font-family="Georgia, 'Times New Roman', serif" font-size="23" letter-spacing="2.4">LA TABLE</text>
+  <path d="M59 43h18m115 0h18" stroke="#927044" stroke-width=".7" opacity=".55"/>
+  <text x="134" y="46" text-anchor="middle" fill="#927044" font-family="Arial, sans-serif" font-size="7.4" letter-spacing="2.9">RESTAURANT</text>
+</svg>

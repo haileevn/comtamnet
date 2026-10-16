@@ -1,0 +1,24 @@
+{
+  "name": "comtam.net",
+  "version": "1.0.0",
+  "description": "Cơm Tấm Ông Mập (comtam.net) — Hệ thống đặt cơm online & Order tại bàn bằng quét mã QR kết nối PostgreSQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "com-tam",
+    "comtam-net",
+    "qr-ordering",
+    "postgresql",
+    "vietqr",
+    "restaurant-management"
+  ],
+  "author": "haileevn",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "pg": "^8.23.1"
+  }
+}

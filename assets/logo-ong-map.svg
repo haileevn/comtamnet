@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="270" height="60" viewBox="0 0 270 60" fill="none" role="img" aria-labelledby="brandTitle">
+  <title id="brandTitle">Cơm Tấm Ông Mập — comtam.net</title>
+  <!-- Circular Chef / Claypot / Rice Crest -->
+  <g transform="translate(6, 6)">
+    <circle cx="24" cy="24" r="23" stroke="#b87333" stroke-width="1.5" fill="#fdfaf4"/>
+    <circle cx="24" cy="24" r="20" stroke="#c86b2b" stroke-width="0.8" stroke-dasharray="2 2" fill="none" opacity="0.6"/>
+    <!-- Bowl of rice silhouette -->
+    <path d="M12 26c0 6.6 5.4 12 12 12s12-5.4 12-12H12Z" fill="#b87333"/>
+    <ellipse cx="24" cy="25" rx="12" ry="3.5" fill="#e8984a"/>
+    <!-- Rice mound -->
+    <path d="M13 25c1.5-6 5-9 11-9s9.5 3 11 9" fill="#fcf8f2" stroke="#b87333" stroke-width="1.2"/>
+    <!-- Gentle steam lines -->
+    <path d="M20 12c-1-2.5 1-4.5 0-6" stroke="#c86b2b" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M24 10.5c-1-2.5 1-4.5 0-6" stroke="#b87333" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M28 12c-1-2.5 1-4.5 0-6" stroke="#c86b2b" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- Small star / heart -->
+    <circle cx="24" cy="32" r="1.5" fill="#fdfaf4"/>
+  </g>
+
+  <!-- Typography -->
+  <text x="62" y="26" fill="#2c2724" font-family="'Be Vietnam Pro', 'Be', sans-serif" font-weight="800" font-size="16" letter-spacing="0.5">CƠM TẤM ÔNG MẬP</text>
+  <line x1="62" y1="33" x2="88" y2="33" stroke="#c86b2b" stroke-width="1" opacity="0.6"/>
+  <text x="93" y="36" fill="#c86b2b" font-family="'Be Vietnam Pro', 'Be', sans-serif" font-weight="700" font-size="8" letter-spacing="1.8">COMTAM.NET</text>
+  <line x1="152" y1="33" x2="225" y2="33" stroke="#c86b2b" stroke-width="1" opacity="0.6"/>
+  <text x="62" y="48" fill="#7d6d5d" font-family="'Be Vietnam Pro', 'Be', sans-serif" font-weight="500" font-size="8.5" letter-spacing="0.6">ĐẬM ĐÀ VỊ NGON SÀI GÒN XƯA</text>
+</svg>
