@@ -2350,13 +2350,14 @@
    ======================================================== */
 .detail-panel {
   width: min(920px, 95vw) !important;
-  max-height: 92vh !important;
-  padding: 24px 28px !important;
+  max-height: 90vh !important;
+  padding: 24px 28px 28px !important;
   border-radius: 24px !important;
   background: #ffffff !important;
   box-shadow: 0 25px 70px rgba(45, 30, 15, 0.28) !important;
   border: 1.5px solid #ebdccf !important;
   overflow-y: auto !important;
+  box-sizing: border-box !important;
 }
 
 .dish-detail-layout {
@@ -2720,14 +2721,14 @@
 
 /* Sticky Bottom Action Bar */
 .detail-bottom-action-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 14px;
-  border-top: 1.5px solid #ebdccf;
-  margin-top: 8px;
-  flex-wrap: wrap;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding-top: 14px !important;
+  border-top: 1.5px solid #ebdccf !important;
+  margin-top: 12px !important;
+  flex-wrap: wrap !important;
 }
 
 .quantity-picker-wrap {
@@ -2779,11 +2780,11 @@
 }
 
 .order-action-right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex: 1;
-  justify-content: flex-end;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  flex: 0 0 auto !important;
+  justify-content: flex-end !important;
 }
 
 .price-calc-display {
@@ -2805,24 +2806,61 @@
 }
 
 .btn-checkout-dish {
-  background: linear-gradient(135deg, #c8532b 0%, #a23817 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 22px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 14px rgba(184, 75, 41, 0.35);
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #c8532b 0%, #a23817 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 22px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  box-shadow: 0 4px 14px rgba(184, 75, 41, 0.35) !important;
+  transition: all 0.2s ease !important;
+  flex: 0 0 auto !important;
+  height: 44px !important;
+  box-sizing: border-box !important;
 }
 
 .btn-checkout-dish:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(184, 75, 41, 0.45);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(184, 75, 41, 0.45) !important;
+  background: linear-gradient(135deg, #d35b32 0%, #b33e1a 100%) !important;
+}
+
+.btn-checkout-dish:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 2px 8px rgba(184, 75, 41, 0.3) !important;
+}
+
+.btn-checkout-dish .btn-bag-icon,
+.btn-checkout-dish .icon,
+.btn-checkout-dish img,
+#order-dish img {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  flex: 0 0 18px !important;
+  display: inline-block !important;
+  object-fit: contain !important;
+  filter: brightness(0) invert(1) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.btn-checkout-text {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
 }
 
 /* ========================================================

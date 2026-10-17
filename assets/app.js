@@ -670,7 +670,10 @@
   // Order button in Modal Dialog - Directly add dish + selected toppings to Cart
   const orderDishBtn = document.querySelector('#order-dish');
   if (orderDishBtn) {
-    orderDishBtn.addEventListener('click', () => {
+    orderDishBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
       const d = dishes[selectedDishIndex];
       if (!d) return;
 
@@ -708,7 +711,7 @@
         window.showToast(`Đã thêm ${qty} phần ${d.name} vào giỏ hàng!`, 'success');
       }
 
-      closeDishDetails();
+      resetDishDetails();
       if (window.ComTamApp && window.ComTamApp.openCart) {
         window.ComTamApp.openCart();
       }
