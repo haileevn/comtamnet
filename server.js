@@ -79,15 +79,15 @@ const server = http.createServer(async (req, res) => {
           const body = await parseBody(req);
           const id = body.id || 'dish_' + Date.now();
           const query = `
-            INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, components, available)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, components, toppings, available)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
           `;
           const values = [
             id, body.name, body.category || 'Món Chính', body.price || 65000, body.time || '5–10 phút',
             body.image || 'comtam-suon-cha.png', body.description || '', JSON.stringify(body.tags || []),
             JSON.stringify(body.ingredients || ['pork', 'rice', 'herbs']),
-            JSON.stringify(body.components || []), body.available !== false
+            JSON.stringify(body.components || []), JSON.stringify(body.toppings || []), body.available !== false
           ];
           const result = await pool.query(query, values);
           return sendJSON(res, 201, result.rows[0]);
@@ -116,14 +116,16 @@ const server = http.createServer(async (req, res) => {
               image = COALESCE($5, image),
               description = COALESCE($6, description),
               tags = COALESCE($7, tags),
-              components = COALESCE($8, components)
-            WHERE id = $9
+              components = COALESCE($8, components),
+              toppings = COALESCE($9, toppings)
+            WHERE id = $10
             RETURNING *
           `;
           const values = [
             body.name, body.category, body.price, body.time, body.image,
             body.description, body.tags ? JSON.stringify(body.tags) : null,
-            body.components ? JSON.stringify(body.components) : null, dishId
+            body.components ? JSON.stringify(body.components) : null,
+            body.toppings ? JSON.stringify(body.toppings) : null, dishId
           ];
           const result = await pool.query(query, values);
           return sendJSON(res, 200, result.rows[0] || null);

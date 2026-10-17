@@ -90,31 +90,45 @@ async function initDB() {
 
       -- Ensure new columns exist for existing databases
       ALTER TABLE dishes ADD COLUMN IF NOT EXISTS components JSONB DEFAULT '[]';
+      ALTER TABLE dishes ADD COLUMN IF NOT EXISTS toppings JSONB DEFAULT '[]';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(32) DEFAULT 'active';
     `);
 
-    // Check if dishes need seeding or components sync
+    const defaultDishToppings = [
+      { id: 'top_egg', name: 'Trứng ốp la lòng đào', price: 10000, enabled: true },
+      { id: 'top_cha', name: 'Chả trứng hoàng kim hấp', price: 15000, enabled: true },
+      { id: 'top_bi', name: 'Bì heo thính thơm', price: 10000, enabled: true },
+      { id: 'top_suon', name: 'Sườn cốt lết than hoa thêm', price: 35000, enabled: true },
+      { id: 'top_canh_qua', name: 'Chén canh khổ qua nhồi thịt', price: 20000, enabled: true },
+      { id: 'top_canh_rb', name: 'Chén canh rong biển đậu hũ', price: 15000, enabled: true },
+      { id: 'top_topmo', name: 'Chén mỡ hành tóp mỡ giòn', price: 8000, enabled: true },
+      { id: 'top_com', name: 'Thêm một phần cơm tấm', price: 10000, enabled: true }
+    ];
+
+    // Check if dishes need seeding or components/toppings sync
     const dishCount = await client.query('SELECT COUNT(*) FROM dishes');
     if (parseInt(dishCount.rows[0].count, 10) === 0) {
       console.log('Seeding initial 12 Cơm Tấm dishes into PostgreSQL...');
       for (const d of restaurantMenu.dishes) {
+        const tops = d.toppings && d.toppings.length ? d.toppings : defaultDishToppings;
         await client.query(`
-          INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, components, available)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          INSERT INTO dishes (id, name, category, price, time, image, description, tags, ingredients, components, toppings, available)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         `, [
           d.id, d.name, d.category, d.price, d.time, d.image, d.description,
           JSON.stringify(d.tags || []), JSON.stringify(d.ingredients || []),
-          JSON.stringify(d.components || []), d.available !== false
+          JSON.stringify(d.components || []), JSON.stringify(tops), d.available !== false
         ]);
       }
     } else {
-      // Sync components into existing dishes
+      // Sync components and default toppings into existing dishes if empty
       for (const d of restaurantMenu.dishes) {
         await client.query(`
           UPDATE dishes 
-          SET components = $1, tags = $2
-          WHERE id = $3
-        `, [JSON.stringify(d.components || []), JSON.stringify(d.tags || []), d.id]);
+          SET components = $1, tags = $2,
+              toppings = COALESCE(NULLIF(toppings, '[]'::jsonb), $3)
+          WHERE id = $4
+        `, [JSON.stringify(d.components || []), JSON.stringify(d.tags || []), JSON.stringify(defaultDishToppings), d.id]);
       }
     }
 

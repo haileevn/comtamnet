@@ -488,15 +488,19 @@
     const container = document.querySelector('#topping-modal-body');
     if (!modal || !container) return;
 
-    const toppingsList = (restaurantMenu && restaurantMenu.toppings) ? restaurantMenu.toppings : [
+    const defaultToppingsCatalog = [
       { id: "top_egg", name: "Trứng ốp la lòng đào", price: 10000 },
       { id: "top_cha", name: "Chả trứng hoàng kim hấp", price: 15000 },
-      { id: "top_bi", name: "Bì heo thính thơm giòn", price: 12000 },
+      { id: "top_bi", name: "Bì heo thính thơm giòn", price: 10000 },
       { id: "top_suon", name: "Sườn cốt lết than hoa thêm", price: 35000 },
       { id: "top_topmo", name: "Chén tóp mỡ mỡ hành giòn", price: 8000 },
-      { id: "top_canh", name: "Chén canh khổ qua nhồi thịt", price: 25000 },
+      { id: "top_canh", name: "Canh khổ qua nhồi thịt", price: 20000 },
+      { id: "top_rongbien", name: "Canh rong biển đậu hũ", price: 15000 },
       { id: "top_com", name: "Thêm một chén cơm tấm", price: 10000 }
     ];
+    const toppingsList = (dish.toppings && dish.toppings.length > 0)
+      ? dish.toppings
+      : ((restaurantMenu && restaurantMenu.toppings) ? restaurantMenu.toppings : defaultToppingsCatalog);
 
     container.innerHTML = `
       <div class="dish-preview-row">
@@ -2466,6 +2470,42 @@
     const body = document.querySelector('#dish-editor-modal-body');
     if (!modal || !body) return;
 
+    const catalogToppings = [
+      { id: "top_egg", name: "Trứng ốp la lòng đào", price: 10000 },
+      { id: "top_cha", name: "Chả trứng hoàng kim hấp", price: 15000 },
+      { id: "top_bi", name: "Bì heo thính thơm giòn", price: 10000 },
+      { id: "top_suon", name: "Sườn cốt lết than hoa thêm", price: 35000 },
+      { id: "top_topmo", name: "Chén tóp mỡ mỡ hành giòn", price: 8000 },
+      { id: "top_canh", name: "Canh khổ qua nhồi thịt", price: 20000 },
+      { id: "top_rongbien", name: "Canh rong biển đậu hũ", price: 15000 },
+      { id: "top_com", name: "Thêm một chén cơm tấm", price: 10000 }
+    ];
+
+    const dishToppings = (existing && existing.toppings && Array.isArray(existing.toppings) && existing.toppings.length > 0)
+      ? existing.toppings
+      : [];
+
+    const renderedToppings = catalogToppings.map(cat => {
+      const found = dishToppings.find(t => t.id === cat.id || (t.name && t.name.toLowerCase() === cat.name.toLowerCase()));
+      return {
+        id: cat.id,
+        name: found ? found.name : cat.name,
+        price: found ? found.price : cat.price,
+        enabled: existing ? !!found : true
+      };
+    });
+
+    dishToppings.forEach(t => {
+      if (!renderedToppings.some(r => r.id === t.id || (r.name && t.name && r.name.toLowerCase() === t.name.toLowerCase()))) {
+        renderedToppings.push({
+          id: t.id || ('top_' + Date.now()),
+          name: t.name,
+          price: t.price,
+          enabled: true
+        });
+      }
+    });
+
     body.innerHTML = `
       <form id="dish-editor-form" onsubmit="window.ComTamApp.handleSaveDish(event, '${dishId || ''}')">
         <div class="form-group">
@@ -2515,6 +2555,39 @@
         <div class="form-group">
           <label for="ed-dish-tags">Tags nguyên liệu (cách nhau bởi dấu phẩy)</label>
           <input type="text" id="ed-dish-tags" class="form-control" value="${existing && existing.tags ? existing.tags.join(', ') : 'Sườn nướng, Mỡ hành, Cơm tấm'}">
+        </div>
+
+        <!-- Toppings Manager Section -->
+        <div class="admin-dish-toppings-section">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+            <div>
+              <strong style="font-size:13.5px;color:#2b231d;">🍲 Danh sách Topping ăn kèm cho món này</strong>
+              <div style="font-size:11.5px;color:#7d6c5d;margin-top:2px;">Tích chọn topping cho phép đặt kèm & tùy chỉnh giá bán riêng cho dĩa này:</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="btn-sm-action" style="font-size:11px;padding:3px 8px;background:#fff8ee;border:1px solid #d4a373;color:#b84b29;" onclick="window.ComTamApp.adminToggleAllToppings(true)">Chọn hết</button>
+              <button type="button" class="btn-sm-action" style="font-size:11px;padding:3px 8px;background:#f5f0eb;border:1px solid #d4c5b3;color:#666;" onclick="window.ComTamApp.adminToggleAllToppings(false)">Bỏ chọn</button>
+            </div>
+          </div>
+
+          <div class="admin-toppings-grid" id="admin-toppings-list">
+            ${renderedToppings.map(t => `
+              <div class="admin-topping-row" data-id="${t.id}">
+                <input type="checkbox" class="admin-top-enable" ${t.enabled ? 'checked' : ''} title="Bật/tắt topping này">
+                <input type="text" class="admin-topping-name-input" value="${t.name}" style="flex:1;border:none;background:transparent;font-size:12.5px;font-weight:600;color:#2b231d;outline:none;" placeholder="Tên topping">
+                <div style="display:flex;align-items:center;gap:3px;">
+                  <input type="number" class="admin-topping-price-input" value="${t.price}" min="0" step="1000" style="width:75px;padding:3px 6px;font-size:12px;text-align:right;font-weight:700;color:#b84b29;border:1px solid #d4c5b3;border-radius:4px;">
+                  <small style="font-size:11px;color:#8c7865;">đ</small>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px dashed #ebdccf;align-items:center;flex-wrap:wrap;">
+            <input type="text" id="admin-new-topping-name" class="form-control" style="flex:2;min-width:140px;padding:6px 10px;font-size:12px;" placeholder="Tên topping mới (VD: Chả cua nướng)">
+            <input type="number" id="admin-new-topping-price" class="form-control" style="flex:1;min-width:90px;padding:6px 10px;font-size:12px;" placeholder="Giá (đ)" value="15000" step="1000">
+            <button type="button" class="btn-sm-action" style="background:#5c4731;color:#fff;white-space:nowrap;padding:7px 12px;font-size:12px;" onclick="window.ComTamApp.adminAddNewToppingRow()">+ Thêm Topping</button>
+          </div>
         </div>
 
         <button type="submit" class="btn-checkout" style="margin-top:14px;">
@@ -2924,7 +2997,7 @@
     },
     openDishEditorModal: openDishEditorModal,
     closeDishEditorModal: closeDishEditorModal,
-    handleSaveDish: (e, existingId) => {
+    handleSaveDish: async (e, existingId) => {
       e.preventDefault();
       const name = document.querySelector('#ed-dish-name').value.trim();
       const price = parseInt(document.querySelector('#ed-dish-price').value, 10);
@@ -2934,15 +3007,64 @@
       const description = document.querySelector('#ed-dish-desc').value.trim();
       const tags = document.querySelector('#ed-dish-tags').value.split(',').map(t => t.trim()).filter(Boolean);
 
+      // Collect toppings from admin-toppings-list
+      const toppingRows = document.querySelectorAll('#admin-toppings-list .admin-topping-row');
+      const selectedToppings = [];
+      toppingRows.forEach(row => {
+        const isChecked = row.querySelector('.admin-top-enable')?.checked;
+        if (isChecked) {
+          const topName = row.querySelector('.admin-topping-name-input')?.value.trim() || '';
+          const topPrice = parseInt(row.querySelector('.admin-topping-price-input')?.value || '0', 10);
+          const topId = row.dataset.id || ('top_' + Date.now() + Math.random().toString(36).substr(2, 4));
+          if (topName) {
+            selectedToppings.push({ id: topId, name: topName, price: topPrice });
+          }
+        }
+      });
+
       if (existingId) {
-        store.updateDish(existingId, { name, price, time, category, image, description, tags });
-        showToast(`Đã cập nhật món: ${name}`, 'success');
+        await store.updateDish(existingId, { name, price, time, category, image, description, tags, toppings: selectedToppings });
+        showToast(`Đã cập nhật món: ${name} (${selectedToppings.length} topping)`, 'success');
       } else {
-        store.addDish({ name, price, time, category, image, description, tags, ingredients: ['pork', 'rice', 'herbs'] });
-        showToast(`Đã thêm món mới: ${name}`, 'success');
+        await store.addDish({ name, price, time, category, image, description, tags, toppings: selectedToppings, ingredients: ['pork', 'rice', 'herbs'] });
+        showToast(`Đã thêm món mới: ${name} (${selectedToppings.length} topping)`, 'success');
       }
       closeDishEditorModal();
       renderAdminDashboard();
+    },
+    adminToggleAllToppings: (check) => {
+      document.querySelectorAll('#admin-toppings-list .admin-top-enable').forEach(cb => {
+        cb.checked = check;
+      });
+    },
+    adminAddNewToppingRow: () => {
+      const nameInput = document.querySelector('#admin-new-topping-name');
+      const priceInput = document.querySelector('#admin-new-topping-price');
+      const name = nameInput?.value.trim();
+      const price = parseInt(priceInput?.value || '15000', 10);
+      if (!name) {
+        showToast('Vui lòng nhập tên topping', 'warning');
+        return;
+      }
+      const listEl = document.querySelector('#admin-toppings-list');
+      if (listEl) {
+        const newId = 'top_' + Date.now();
+        const row = document.createElement('div');
+        row.className = 'admin-topping-row';
+        row.dataset.id = newId;
+        row.innerHTML = `
+          <input type="checkbox" class="admin-top-enable" checked title="Bật/tắt topping này">
+          <input type="text" class="admin-topping-name-input" value="${name}" style="flex:1;border:none;background:transparent;font-size:12.5px;font-weight:600;color:#2b231d;outline:none;" placeholder="Tên topping">
+          <div style="display:flex;align-items:center;gap:3px;">
+            <input type="number" class="admin-topping-price-input" value="${price}" min="0" step="1000" style="width:75px;padding:3px 6px;font-size:12px;text-align:right;font-weight:700;color:#b84b29;border:1px solid #d4c5b3;border-radius:4px;">
+            <small style="font-size:11px;color:#8c7865;">đ</small>
+          </div>
+        `;
+        listEl.appendChild(row);
+        nameInput.value = '';
+        priceInput.value = '15000';
+        showToast(`Đã thêm topping: ${name}`, 'success');
+      }
     },
     adminAdjustPoints: (userId, delta) => {
       const updated = store.updateUserPoints(userId, delta, `Admin điều chỉnh ${delta > 0 ? '+' : ''}${delta} điểm`);

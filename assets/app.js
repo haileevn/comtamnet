@@ -244,12 +244,53 @@
     previousOverflow = '',
     detailMotion = null;
 
+  function updateDetailLiveTotal() {
+    const d = dishes[selectedDishIndex];
+    if (!d) return;
+    const qty = parseInt(document.querySelector('#modal-dish-qty')?.textContent || '1', 10);
+    let extraCost = 0;
+    document.querySelectorAll('#modal-toppings-list input[type="checkbox"]:checked').forEach(cb => {
+      const card = cb.closest('.modal-topping-card');
+      if (card) {
+        extraCost += parseInt(card.dataset.price || '0', 10);
+        card.classList.add('selected');
+      }
+    });
+    document.querySelectorAll('#modal-toppings-list input[type="checkbox"]:not(:checked)').forEach(cb => {
+      cb.closest('.modal-topping-card')?.classList.remove('selected');
+    });
+
+    const singleTotal = d.price + extraCost;
+    const grandTotal = singleTotal * qty;
+    const liveTotalEl = document.querySelector('#modal-live-total');
+    if (liveTotalEl) {
+      liveTotalEl.innerHTML = formatPrice(grandTotal) + ' <small>đ</small>';
+    }
+  }
+
   function renderDishDetails(d) {
     document.querySelector('#modal-name').textContent = d.name;
     document.querySelector('#modal-category').textContent = d.category;
     document.querySelector('#modal-description').textContent = d.description;
     document.querySelector('#modal-time').textContent = d.time;
-    document.querySelector('#modal-price').innerHTML = formatPrice(d.price) + ' <small>đ</small>';
+    const priceEl = document.querySelector('#modal-price');
+    if (priceEl) priceEl.innerHTML = formatPrice(d.price) + ' <small>đ</small>';
+
+    // Set dish image
+    const modalImg = document.querySelector('#modal-dish-img');
+    if (modalImg) {
+      modalImg.src = 'assets/' + (d.image || 'comtam-suon-cha.png');
+      modalImg.alt = d.name;
+    }
+
+    // Reset quantity and notes
+    const qtyEl = document.querySelector('#modal-dish-qty');
+    if (qtyEl) qtyEl.textContent = '1';
+    const notesInput = document.querySelector('#modal-dish-notes');
+    if (notesInput) notesInput.value = '';
+    document.querySelectorAll('#quick-note-tags .quick-note-tag').forEach(tag => tag.classList.remove('active'));
+
+    // Render Components Breakdown
     const ingredientsEl = document.querySelector('#modal-ingredients');
     const summaryEl = document.querySelector('#modal-components-summary');
     if (ingredientsEl) {
@@ -304,6 +345,38 @@
         if (summaryEl) summaryEl.innerHTML = '';
       }
     }
+
+    // Render Toppings Selector
+    const toppingsListEl = document.querySelector('#modal-toppings-list');
+    if (toppingsListEl) {
+      const defaultToppings = [
+        { id: "top_egg", name: "Trứng ốp la lòng đào", price: 10000 },
+        { id: "top_cha", name: "Chả trứng hoàng kim hấp", price: 15000 },
+        { id: "top_bi", name: "Bì heo thính thơm giòn", price: 10000 },
+        { id: "top_suon", name: "Sườn cốt lết than hoa thêm", price: 35000 },
+        { id: "top_topmo", name: "Chén tóp mỡ mỡ hành giòn", price: 8000 },
+        { id: "top_canh", name: "Canh khổ qua nhồi thịt", price: 20000 },
+        { id: "top_rongbien", name: "Canh rong biển đậu hũ", price: 15000 },
+        { id: "top_com", name: "Thêm một chén cơm tấm", price: 10000 }
+      ];
+
+      const toppings = (d.toppings && d.toppings.length > 0) ? d.toppings : defaultToppings;
+      toppingsListEl.innerHTML = toppings.map(top => `
+        <label class="modal-topping-card" data-id="${top.id || ''}" data-name="${top.name}" data-price="${top.price}">
+          <input type="checkbox" class="dish-detail-topping-cb" value="${top.id || top.name}">
+          <div class="topping-card-content">
+            <span class="topping-card-name">${top.name}</span>
+            <span class="topping-card-price">+${formatPrice(top.price)} đ</span>
+          </div>
+        </label>
+      `).join('');
+
+      toppingsListEl.querySelectorAll('.dish-detail-topping-cb').forEach(cb => {
+        cb.addEventListener('change', updateDetailLiveTotal);
+      });
+    }
+
+    updateDetailLiveTotal();
   }
 
   async function runDetailAnimation(el, keyframes, options) {
@@ -555,23 +628,98 @@
     }
   });
 
-  // Order button in Modal Dialog
-  document.querySelector('#order-dish').addEventListener('click', () => {
-    const d = dishes[selectedDishIndex];
-    if (window.ComTamApp) {
-      window.ComTamApp.openCustomization(d);
-    }
-    closeDishDetails();
+  // Quantity buttons in Modal Dialog
+  const modalQtyMinus = document.querySelector('#btn-modal-qty-minus');
+  const modalQtyPlus = document.querySelector('#btn-modal-qty-plus');
+  const modalQtyDisplay = document.querySelector('#modal-dish-qty');
+  if (modalQtyMinus && modalQtyDisplay) {
+    modalQtyMinus.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let cur = parseInt(modalQtyDisplay.textContent || '1', 10);
+      if (cur > 1) {
+        modalQtyDisplay.textContent = cur - 1;
+        updateDetailLiveTotal();
+      }
+    });
+  }
+  if (modalQtyPlus && modalQtyDisplay) {
+    modalQtyPlus.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let cur = parseInt(modalQtyDisplay.textContent || '1', 10);
+      modalQtyDisplay.textContent = cur + 1;
+      updateDetailLiveTotal();
+    });
+  }
+
+  // Quick kitchen note tags in Modal Dialog
+  const quickNoteTags = document.querySelectorAll('#quick-note-tags .quick-note-tag');
+  quickNoteTags.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      btn.classList.toggle('active');
+      const activeNotes = Array.from(document.querySelectorAll('#quick-note-tags .quick-note-tag.active'))
+        .map(b => b.dataset.note);
+      const notesInput = document.querySelector('#modal-dish-notes');
+      if (notesInput) {
+        notesInput.value = activeNotes.join(', ');
+      }
+    });
   });
+
+  // Order button in Modal Dialog - Directly add dish + selected toppings to Cart
+  const orderDishBtn = document.querySelector('#order-dish');
+  if (orderDishBtn) {
+    orderDishBtn.addEventListener('click', () => {
+      const d = dishes[selectedDishIndex];
+      if (!d) return;
+
+      const qty = parseInt(document.querySelector('#modal-dish-qty')?.textContent || '1', 10);
+      const selectedBoxes = document.querySelectorAll('#modal-toppings-list input[type="checkbox"]:checked');
+      const selectedToppings = [];
+      let extraCost = 0;
+
+      selectedBoxes.forEach(box => {
+        const card = box.closest('.modal-topping-card');
+        if (card) {
+          const topPrice = parseInt(card.dataset.price || '0', 10);
+          selectedToppings.push(`${card.dataset.name} (+${formatPrice(topPrice)}đ)`);
+          extraCost += topPrice;
+        }
+      });
+
+      const notes = document.querySelector('#modal-dish-notes')?.value.trim() || '';
+
+      if (window.ComTamStore) {
+        window.ComTamStore.addToCart({
+          dishId: d.id,
+          name: d.name,
+          price: d.price + extraCost,
+          unitPrice: d.price,
+          image: d.image,
+          quantity: qty,
+          toppings: selectedToppings,
+          toppingsCost: extraCost,
+          notes: notes
+        });
+      }
+
+      if (window.showToast) {
+        window.showToast(`Đã thêm ${qty} phần ${d.name} vào giỏ hàng!`, 'success');
+      }
+
+      closeDishDetails();
+      if (window.ComTamApp && window.ComTamApp.openCart) {
+        window.ComTamApp.openCart();
+      }
+    });
+  }
 
   // Quick order button in Details section
   const quickOrderBtn = document.querySelector('#btn-quick-order');
   if (quickOrderBtn) {
     quickOrderBtn.addEventListener('click', () => {
-      const d = dishes[selectedDishIndex];
-      if (window.ComTamApp) {
-        window.ComTamApp.openCustomization(d);
-      }
+      openDishDetails();
     });
   }
 

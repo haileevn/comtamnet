@@ -137,29 +137,87 @@
             <span class="sr-only" id="detail-status" role="status"></span>
             <article class="detail-panel" id="detail-panel" hidden>
                 <button type="button" class="dialog-close" aria-label="Đóng chi tiết món">×</button>
-                <div class="detail-kicker" id="modal-category"></div>
-                <h2 id="modal-name"></h2>
-                <p class="detail-copy" id="modal-description"></p>
-                <section class="detail-section">
-                    <h3 id="ingredients-heading" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <span>🍱 Thành phần trong dĩa & Đơn giá từng món</span>
-                        <small style="font-size:11px;font-weight:normal;color:var(--text-muted);">Đã bao gồm trong combo</small>
-                    </h3>
-                    <ul class="detail-ingredients" id="modal-ingredients" aria-labelledby="ingredients-heading"></ul>
-                    <div id="modal-components-summary" class="components-summary-box"></div>
-                </section>
-                <div class="detail-facts">
-                    <div><small>Thời gian chuẩn bị</small><strong id="modal-time"></strong></div>
-                    <div><small>Khẩu phần</small><strong>1 người thưởng thức</strong></div>
-                </div>
-                <div class="detail-bottom">
-                    <div>
-                        <span class="detail-price-label">Giá / phần</span>
-                        <div class="detail-price" id="modal-price"></div>
+                <div class="dish-detail-layout">
+                    <!-- Left Media Column -->
+                    <div class="dish-detail-media">
+                        <div class="dish-detail-img-wrap">
+                            <img id="modal-dish-img" class="dish-detail-img" src="assets/comtam-suon-cha.png" alt="Hình dĩa cơm tấm" />
+                            <span class="dish-badge-special">🔥 Bán Chạy Nhất</span>
+                            <span class="dish-badge-saigon">Hương Vị Sài Gòn</span>
+                        </div>
+                        <div class="dish-detail-quick-meta">
+                            <div class="meta-pill">
+                                <span class="pill-ico">⏱️</span> Chuẩn bị: <strong id="modal-time" style="margin-left:4px;">5–10 phút</strong>
+                            </div>
+                            <div class="meta-pill">
+                                <span class="pill-ico">👤</span> Khẩu phần: <strong style="margin-left:4px;">1 người thưởng thức</strong>
+                            </div>
+                            <div class="meta-pill">
+                                <span class="pill-ico">🌾</span> Gạo tấm: <strong style="margin-left:4px;">Tấm Long An dẻo ngọt</strong>
+                            </div>
+                        </div>
                     </div>
-                    <button type="button" class="order-button" id="order-dish">
-                        <img class="icon" src="assets/icons/shopping-bag.svg" alt="" aria-hidden="true" />Đặt hàng
-                    </button>
+
+                    <!-- Right Content Column -->
+                    <div class="dish-detail-content">
+                        <div class="detail-kicker" id="modal-category"></div>
+                        <h2 id="modal-name"></h2>
+                        <p class="detail-copy" id="modal-description"></p>
+
+                        <!-- Components Breakdown -->
+                        <section class="detail-section">
+                            <div class="section-title-sm">
+                                <span>🍱 Thành phần trong dĩa & Đơn giá:</span>
+                                <span class="text-sub">Đã bao gồm trong combo</span>
+                            </div>
+                            <ul class="detail-ingredients" id="modal-ingredients" aria-label="Thành phần món"></ul>
+                            <div id="modal-components-summary" class="components-summary-box"></div>
+                        </section>
+
+                        <!-- Interactive Toppings Selector -->
+                        <div class="topping-selection-section">
+                            <div class="topping-section-header">
+                                <strong style="font-size:13px;color:#2b231d;">🍲 Chọn thêm Topping ăn kèm:</strong>
+                                <span class="topping-hint">Tùy chọn thêm</span>
+                            </div>
+                            <div class="modal-toppings-grid" id="modal-toppings-list"></div>
+                        </div>
+
+                        <!-- Kitchen Quick Notes -->
+                        <div class="notes-selection-section">
+                            <label for="modal-dish-notes" style="font-size:12px;font-weight:700;color:#2b231d;display:block;margin-bottom:4px;">✏ Ghi chú cho bếp Ông Mập:</label>
+                            <div class="kitchen-quick-tags" id="quick-note-tags">
+                                <button type="button" class="quick-note-tag" data-note="Nhiều mỡ hành tóp mỡ">+ Nhiều mỡ hành</button>
+                                <button type="button" class="quick-note-tag" data-note="Nước mắm ớt riêng">+ Mắm ớt riêng</button>
+                                <button type="button" class="quick-note-tag" data-note="Sườn chín tới mềm mọng">+ Sườn mềm</button>
+                                <button type="button" class="quick-note-tag" data-note="Ít cơm tấm">+ Ít cơm</button>
+                            </div>
+                            <input type="text" id="modal-dish-notes" class="form-control" style="margin-top:6px;font-size:12.5px;padding:6px 12px;border:1px solid #ebdccf;border-radius:8px;background:#fff;" placeholder="Ví dụ: Nhiều mỡ hành tóp mỡ, nước mắm ớt riêng..." />
+                        </div>
+
+                        <!-- Sticky Bottom Action Bar -->
+                        <div class="detail-bottom-action-bar">
+                            <div class="quantity-picker-wrap">
+                                <span class="qty-label">Số lượng:</span>
+                                <div class="qty-control-group">
+                                    <button type="button" class="qty-btn" id="btn-modal-qty-minus" aria-label="Giảm số lượng">−</button>
+                                    <span class="qty-display" id="modal-dish-qty">1</span>
+                                    <button type="button" class="qty-btn" id="btn-modal-qty-plus" aria-label="Tăng số lượng">+</button>
+                                </div>
+                            </div>
+                            <div class="order-action-right">
+                                <div class="price-calc-display">
+                                    <small>Tổng cộng món này</small>
+                                    <div class="total-price-large" id="modal-live-total">0 <small>đ</small></div>
+                                    <span id="modal-price" style="display:none;"></span>
+                                </div>
+                                <button type="button" class="btn-checkout-dish" id="order-dish">
+                                    <img class="icon" src="assets/icons/shopping-bag.svg" alt="" aria-hidden="true" style="filter:brightness(0) invert(1);" />
+                                    <span>Thêm Vào Giỏ</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </article>
         </dialog>
